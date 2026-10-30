@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { HealthResponse } from '@ziarnista/shared';
 
-export class HealthResponseDto {
+// implements: the compiler flags any drift from the schema the frontends validate against
+export class HealthResponseDto implements HealthResponse {
   @ApiProperty({ enum: ['ok', 'error'], example: 'ok' })
   status: 'ok' | 'error';
 

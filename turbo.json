@@ -1,5 +1,6 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "globalEnv": ["API_URL"],
   "tasks": {
     "db:generate": {
       "inputs": ["prisma/**", "prisma.config.ts"],

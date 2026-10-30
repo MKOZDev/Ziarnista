@@ -57,4 +57,6 @@ Klient Prisma (`apps/api/src/generated/`, poza gitem) generuje zadanie turbo `db
 
 API (`apps/api`): `http://localhost:4000/api/v1`, Swagger: `http://localhost:4000/api/docs`, health: `GET /api/v1/health`.
 
+Sklep (`apps/storefront`): `http://localhost:3000`, panel (`apps/admin`): `http://localhost:3001`. Oba przekazują `/api/*` do API (rewrites, adres w `API_URL` w root `.env`).
+
 Pierwsze uruchomienie: `cp .env.example .env`, `pnpm install`, `pnpm db:up`.

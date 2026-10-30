@@ -1,0 +1,19 @@
+@import 'tailwindcss';
+
+/* Brand tokens from docs/SPEC.md (section 5) -> classes like bg-cream, text-espresso, font-display */
+@theme {
+  --color-cream: #f6f1ea;
+  --color-espresso: #2b1d14;
+  --color-terracotta: #c8553d;
+  --color-sage: #8a9a7b;
+
+  /* CSS variables injected by next/font in layout.tsx */
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-cream font-sans text-espresso antialiased;
+  }
+}
