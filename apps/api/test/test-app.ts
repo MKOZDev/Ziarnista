@@ -40,9 +40,12 @@ export async function createTestApp(): Promise<TestApp> {
   return { app, server: app.getHttpServer() as Server, prisma: app.get(PrismaService) };
 }
 
-/** CASCADE also empties tables referencing users (sessions, carts, orders, ...). */
+/**
+ * CASCADE also empties the tables referencing these (sessions, carts, orders, variants,
+ * images, ...).
+ */
 export async function resetDatabase(prisma: PrismaService): Promise<void> {
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE users CASCADE');
+  await prisma.$executeRawUnsafe('TRUNCATE TABLE users, products, categories, origins CASCADE');
 }
 
 export async function createUser(
