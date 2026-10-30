@@ -15,5 +15,5 @@
     // DTO classes are filled in by NestJS, not by constructors
     "strictPropertyInitialization": false
   },
-  "include": ["src", "prisma", "prisma.config.ts", "vitest.config.mts"]
+  "include": ["src", "test", "prisma", "prisma.config.ts", "vitest.config.mts"]
 }

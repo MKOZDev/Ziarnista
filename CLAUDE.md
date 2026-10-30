@@ -47,7 +47,7 @@ Uruchamiane z katalogu głównego repo (`pnpm <skrypt>`):
 - `pnpm build` — buduje wszystkie pakiety i aplikacje w kolejności zależności.
 - `pnpm lint` — sprawdza kod ESLintem (z regułami opartymi na typach) we wszystkich pakietach.
 - `pnpm typecheck` — sprawdza typy TypeScript we wszystkich pakietach bez generowania plików.
-- `pnpm test` — uruchamia testy (Vitest) we wszystkich pakietach.
+- `pnpm test` — uruchamia testy (Vitest) we wszystkich pakietach. W `apps/api` dwa projekty: `unit` (`*.test.ts`) i `integration` (`*.int.test.ts`, prawdziwa baza `ziarnista_test`, tworzona i migrowana automatycznie; wymaga `pnpm db:up`). Tylko jeden: `pnpm --filter @ziarnista/api exec vitest run --project unit`.
 - `pnpm format` — formatuje całe repo Prettierem (zapisuje zmiany).
 - `pnpm format:check` — sprawdza formatowanie bez zmian w plikach (do CI).
 - `pnpm db:up` — uruchamia PostgreSQL (pgvector) i MinIO w Docker Compose i czeka na healthchecki.

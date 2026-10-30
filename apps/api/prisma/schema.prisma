@@ -25,6 +25,11 @@ enum Role {
   ADMIN
 }
 
+enum SessionScope {
+  STOREFRONT
+  ADMIN
+}
+
 enum ProductKind {
   COFFEE
   ACCESSORY
@@ -79,10 +84,12 @@ model User {
 
 model Session {
   /// Set by the application (hash of the random token kept in the cookie), hence no default
-  id        String   @id
-  userId    String   @map("user_id") @db.Uuid
-  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  id        String       @id
+  userId    String       @map("user_id") @db.Uuid
+  /// Which app the session belongs to; a token is only accepted from that app's cookie
+  scope     SessionScope
+  expiresAt DateTime     @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
