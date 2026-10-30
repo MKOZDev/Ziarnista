@@ -1,3 +1,11 @@
 packages:
   - apps/*
   - packages/*
+
+# Dependencies allowed to run install scripts (pnpm blocks them by default)
+allowBuilds:
+  '@prisma/engines': true
+  '@swc/core': true
+  prisma: true
+  # Usage telemetry pulled in by swagger-ui-dist; not needed
+  '@scarf/scarf': false

@@ -1,0 +1,12 @@
+// Prisma schema. Business models are added in phase 2.
+// The database URL is configured in prisma.config.ts (Prisma 7+).
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}

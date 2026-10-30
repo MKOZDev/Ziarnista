@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // No "type": "module" in package.json, so NodeNext emits CommonJS.
+    // NestJS 12 ships as ESM; Node 24 loads it from CommonJS via require(esm).
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "outDir": "dist",
+    "types": ["node"],
+    // Required by NestJS dependency injection (constructor parameter types)
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    // DTO classes are filled in by NestJS, not by constructors
+    "strictPropertyInitialization": false
+  },
+  "include": ["src", "prisma.config.ts", "vitest.config.mts"]
+}

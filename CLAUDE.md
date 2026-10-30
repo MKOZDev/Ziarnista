@@ -53,4 +53,8 @@ Uruchamiane z katalogu głównego repo (`pnpm <skrypt>`):
 - `pnpm db:up` — uruchamia PostgreSQL (pgvector) i MinIO w Docker Compose i czeka na healthchecki.
 - `pnpm db:down` — zatrzymuje kontenery; dane zostają w nazwanych wolumenach.
 
+Klient Prisma (`apps/api/src/generated/`, poza gitem) generuje zadanie turbo `db:generate`, uruchamiane automatycznie przed `dev`, `build`, `lint`, `typecheck` i `test`.
+
+API (`apps/api`): `http://localhost:4000/api/v1`, Swagger: `http://localhost:4000/api/docs`, health: `GET /api/v1/health`.
+
 Pierwsze uruchomienie: `cp .env.example .env`, `pnpm install`, `pnpm db:up`.
