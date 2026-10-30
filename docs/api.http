@@ -17,6 +17,55 @@
 ### Health
 GET {{api}}/health
 
+# ---------------------------------------------------------------- Katalog
+# Publiczne, bez logowania. Widoczne są tylko produkty ACTIVE z co najmniej jednym
+# aktywnym wariantem; warianty nieaktywne nie pojawiają się nigdzie. Ceny w groszach.
+
+### Lista produktów — domyślnie: najnowsze, strona 1, 24 na stronę
+GET {{api}}/products
+
+### Kategoria z podkategoriami (kawa = espresso + przelew)
+GET {{api}}/products?category=kawa
+
+### Filtry łączone: jasno palona kawa do przelewu lub aeropressu, 50–80 zł, od najtańszej
+# brewMethod można powtórzyć — wystarczy zgodność z jedną z metod
+GET {{api}}/products?category=kawa&roastLevel=LIGHT&brewMethod=POUR_OVER&brewMethod=AEROPRESS&priceMin=5000&priceMax=8000&sort=price_asc
+
+### Fasety: przy origin=etiopia faseta origin nadal pokazuje inne kraje (pomija własny filtr),
+# a roastLevel i brewMethod liczą już tylko kawy z Etiopii
+GET {{api}}/products?origin=etiopia
+
+### Wyszukiwanie po nazwie (bez rozróżniania wielkości liter) i sortowanie po nazwie
+GET {{api}}/products?q=etiopia&sort=name
+
+### Akcesoria, druga strona po 5
+GET {{api}}/products?kind=ACCESSORY&pageSize=5&page=2
+
+### Strona za końcem listy (200, pusta lista items, total bez zmian)
+GET {{api}}/products?page=99
+
+### Nieznany stopień palenia (400, w errors ścieżka parametru)
+GET {{api}}/products?roastLevel=BLONDE
+
+### Za duża strona (400, max 48)
+GET {{api}}/products?pageSize=49
+
+### Literówka w nazwie parametru (400 — zamiast po cichu zignorować filtr)
+GET {{api}}/products?pricemin=5000
+
+### Szczegóły produktu: aktywne warianty od najtańszego, zdjęcia, breadcrumbs
+# W seedzie ten produkt ma nieaktywny wariant „250 g / mielona” — nie ma go w odpowiedzi
+GET {{api}}/products/etiopia-guji-hambela
+
+### Produkt w szkicu (404 — tak samo jak nieistniejący)
+GET {{api}}/products/rwanda-nyamasheke-gitesi
+
+### Produkt zarchiwizowany (404)
+GET {{api}}/products/kenia-kirinyaga-kii
+
+### Drzewo kategorii z liczbą produktów (łącznie z podkategoriami)
+GET {{api}}/categories
+
 # ---------------------------------------------------------------- Sklep
 
 ### Rejestracja (201, od razu loguje: cookie zia_session)
