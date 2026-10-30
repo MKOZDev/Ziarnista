@@ -52,8 +52,14 @@ Uruchamiane z katalogu głównego repo (`pnpm <skrypt>`):
 - `pnpm format:check` — sprawdza formatowanie bez zmian w plikach (do CI).
 - `pnpm db:up` — uruchamia PostgreSQL (pgvector) i MinIO w Docker Compose i czeka na healthchecki.
 - `pnpm db:down` — zatrzymuje kontenery; dane zostają w nazwanych wolumenach.
+- `pnpm db:migrate` — `prisma migrate dev` (tworzy i stosuje migracje) + `prisma generate`.
+- `pnpm db:seed` — idempotentny seed (`apps/api/prisma/seed/`): kategorie, pochodzenie, produkty, admin i klient testowy (dane logowania `SEED_*` w `.env`).
+- `pnpm db:studio` — Prisma Studio (podgląd danych w przeglądarce).
+- `pnpm db:reset` — kasuje bazę, stosuje wszystkie migracje od zera i uruchamia seed. Tylko lokalnie.
 
-Klient Prisma (`apps/api/src/generated/`, poza gitem) generuje zadanie turbo `db:generate`, uruchamiane automatycznie przed `dev`, `build`, `lint`, `typecheck` i `test`.
+Klient Prisma (`apps/api/src/generated/`, poza gitem) generuje zadanie turbo `db:generate`, uruchamiane automatycznie przed `dev`, `build`, `lint`, `typecheck` i `test`. Prisma 7 nie generuje klienta ani nie uruchamia seeda po `migrate dev` / `migrate reset` — robią to skrypty powyżej.
+
+Migracje z SQL-em, którego Prisma nie obsługuje (CHECK, sekwencje): `prisma migrate dev --create-only --name <nazwa>`, dopisanie SQL do wygenerowanego pliku, potem `pnpm db:migrate`.
 
 API (`apps/api`): `http://localhost:4000/api/v1`, Swagger: `http://localhost:4000/api/docs`, health: `GET /api/v1/health`.
 

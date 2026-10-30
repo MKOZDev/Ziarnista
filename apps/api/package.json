@@ -9,7 +9,11 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev && prisma generate",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset --force && prisma generate && prisma db seed"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.11",
@@ -20,6 +24,7 @@
     "@types/supertest": "^7.2.1",
     "prisma": "^7.10.1",
     "supertest": "^7.3.1",
+    "tsx": "^4.23.15",
     "unplugin-swc": "^2.0.0",
     "vitest": "^5.0.5"
   },
@@ -28,6 +33,7 @@
     "@nestjs/core": "^12.3.2",
     "@nestjs/platform-express": "^12.3.2",
     "@nestjs/swagger": "^12.0.5",
+    "@node-rs/argon2": "^2.2.2",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "@ziarnista/shared": "workspace:*",

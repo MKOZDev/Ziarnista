@@ -14,7 +14,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d --wait",
-    "db:down": "docker compose down"
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @ziarnista/api db:migrate",
+    "db:seed": "pnpm --filter @ziarnista/api db:seed",
+    "db:studio": "pnpm --filter @ziarnista/api db:studio",
+    "db:reset": "pnpm --filter @ziarnista/api db:reset"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

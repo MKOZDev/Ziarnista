@@ -1,5 +1,12 @@
-// Prisma schema. Business models are added in phase 2.
+// Prisma schema — data model from docs/SPEC.md (sections 3 and 7).
 // The database URL is configured in prisma.config.ts (Prisma 7+).
+//
+// Conventions:
+// - ids: UUIDv7 (time-ordered, not guessable) stored as native uuid
+// - tables and columns in snake_case (@@map / @map), so raw SQL stays readable
+// - timestamps as timestamptz
+// - money as Int in grosze
+// Not expressible in Prisma (added by hand in migrations): CHECK constraints, order_number_seq.
 
 generator client {
   provider     = "prisma-client"
@@ -9,4 +16,274 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum ProductKind {
+  COFFEE
+  ACCESSORY
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum RoastLevel {
+  LIGHT
+  MEDIUM
+  DARK
+}
+
+enum BrewMethod {
+  ESPRESSO
+  POUR_OVER
+  AEROPRESS
+  FRENCH_PRESS
+  MOKA
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// ---------- Users and auth ----------
+
+model User {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  /// Always stored lowercase (normalized by the Zod schema)
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  sessions  Session[]
+  addresses Address[]
+  cart      Cart?
+  orders    Order[]
+
+  @@map("users")
+}
+
+model Session {
+  /// Set by the application (hash of the random token kept in the cookie), hence no default
+  id        String   @id
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Address {
+  id         String @id @default(uuid(7)) @db.Uuid
+  userId     String @map("user_id") @db.Uuid
+  fullName   String @map("full_name")
+  street     String
+  city       String
+  postalCode String @map("postal_code")
+  phone      String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+// ---------- Catalog ----------
+
+/// Navigation tree (Kawa → Espresso / Przelew). Product structure is described by Product.kind.
+model Category {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  name     String
+  slug     String  @unique
+  parentId String? @map("parent_id") @db.Uuid
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+model Origin {
+  id   String @id @default(uuid(7)) @db.Uuid
+  name String @unique
+  slug String @unique
+
+  products Product[]
+
+  @@map("origins")
+}
+
+model Product {
+  id              String        @id @default(uuid(7)) @db.Uuid
+  kind            ProductKind
+  name            String
+  slug            String        @unique
+  description     String        @default("")
+  metaTitle       String?       @map("meta_title")
+  metaDescription String?       @map("meta_description")
+  status          ProductStatus @default(DRAFT)
+  categoryId      String        @map("category_id") @db.Uuid
+  /// Required when kind = COFFEE (CHECK constraint)
+  originId        String?       @map("origin_id") @db.Uuid
+  /// Required when kind = COFFEE (CHECK constraint)
+  roastLevel      RoastLevel?   @map("roast_level")
+  /// Lowercase free text, display and AI only (no filtering)
+  flavorNotes     String[]      @default([]) @map("flavor_notes")
+  brewMethods     BrewMethod[]  @default([]) @map("brew_methods")
+  /// Lowest price of active variants, recomputed on every variant change; null = no active variants
+  minPrice        Int?          @map("min_price")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  // embedding (pgvector) is added in the AI phase
+
+  category Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  origin   Origin?          @relation(fields: [originId], references: [id], onDelete: Restrict)
+  variants ProductVariant[]
+  images   ProductImage[]
+
+  @@index([status, minPrice])
+  @@index([status, createdAt])
+  @@index([categoryId])
+  @@index([originId])
+  @@index([brewMethods], type: Gin)
+  @@map("products")
+}
+
+model ProductVariant {
+  id        String  @id @default(uuid(7)) @db.Uuid
+  productId String  @map("product_id") @db.Uuid
+  sku       String  @unique
+  label     String
+  price     Int
+  stock     Int     @default(0)
+  /// Variants are never hard-deleted: deactivate instead (order items reference them)
+  isActive  Boolean @default(true) @map("is_active")
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+model ProductImage {
+  id        String @id @default(uuid(7)) @db.Uuid
+  productId String @map("product_id") @db.Uuid
+  url       String
+  alt       String @default("")
+  /// Not unique: swapping positions would violate a unique constraint mid-update
+  position  Int
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, position])
+  @@map("product_images")
+}
+
+// ---------- Cart ----------
+
+/// Belongs to a user or to a guest (token in cookie); at least one is set (CHECK constraint)
+model Cart {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  userId     String?  @unique @map("user_id") @db.Uuid
+  guestToken String?  @unique @map("guest_token")
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String @id @default(uuid(7)) @db.Uuid
+  cartId    String @map("cart_id") @db.Uuid
+  variantId String @map("variant_id") @db.Uuid
+  quantity  Int
+
+  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  /// One row per variant: "add to cart" increments the quantity
+  @@unique([cartId, variantId])
+  @@map("cart_items")
+}
+
+// ---------- Orders and payments ----------
+
+model Order {
+  id                    String      @id @default(uuid(7)) @db.Uuid
+  /// ZIA-YYYY-NNNNNN, built by the app from order_number_seq
+  number                String      @unique
+  /// Null for guest orders and after the user account is deleted
+  userId                String?     @map("user_id") @db.Uuid
+  email                 String
+  status                OrderStatus @default(PENDING)
+  subtotal              Int
+  shippingCost          Int         @map("shipping_cost")
+  total                 Int
+  /// Copy of the address at purchase time, not a reference
+  shippingAddress       Json        @map("shipping_address")
+  stripePaymentIntentId String?     @unique @map("stripe_payment_intent_id")
+  createdAt             DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  // SetNull: deleting an account must not delete orders (accounting); the order keeps copies of its data
+  user  User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items OrderItem[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+/// Copy of product data at purchase time
+model OrderItem {
+  id           String @id @default(uuid(7)) @db.Uuid
+  orderId      String @map("order_id") @db.Uuid
+  variantId    String @map("variant_id") @db.Uuid
+  productName  String @map("product_name")
+  variantLabel String @map("variant_label")
+  sku          String
+  unitPrice    Int    @map("unit_price")
+  quantity     Int
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([variantId])
+  @@map("order_items")
+}
+
+/// Processed Stripe webhook events (idempotency)
+model StripeEvent {
+  /// Stripe event id (evt_...)
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now()) @map("processed_at") @db.Timestamptz(3)
+
+  @@map("stripe_events")
 }
