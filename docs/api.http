@@ -1,0 +1,130 @@
+# Ziarnista API — requesty do ręcznego testowania
+#
+# Działa w VS Code (rozszerzenie REST Client) i w IDE JetBrains (HTTP Client).
+# Oba klienty zapamiętują cookies z odpowiedzi, więc po loginie kolejne requesty
+# są zalogowane, a po logout — znowu nie.
+#
+# Wymaga: pnpm db:up, pnpm db:seed, pnpm dev (API na :4000).
+# Dane kont z seeda: SEED_* w .env (poniżej wartości z .env.example).
+#
+# Każdy POST/PATCH/PUT/DELETE musi mieć nagłówek Origin z ALLOWED_ORIGINS,
+# inaczej API zwraca 403 (ochrona CSRF). Przeglądarka dodaje go sama.
+
+@api = http://localhost:4000/api/v1
+@storefront = http://localhost:3000
+@admin = http://localhost:3001
+
+### Health
+GET {{api}}/health
+
+# ---------------------------------------------------------------- Sklep
+
+### Rejestracja (201, od razu loguje: cookie zia_session)
+POST {{api}}/auth/register
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "email": "nowy@example.com",
+  "password": "dlugie-haslo-123",
+  "name": "Nowy Klient"
+}
+
+### Rejestracja — za krótkie hasło (400)
+POST {{api}}/auth/register
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "email": "krotkie@example.com",
+  "password": "za-krotkie",
+  "name": "Ktoś"
+}
+
+### Rejestracja z istniejącym emailem (409 Conflict)
+# 409 zdradza, że konto o tym emailu istnieje (user enumeration). Świadomy kompromis:
+# czytelny komunikat w formularzu jest wart więcej niż ukrycie tej informacji w sklepie,
+# a masowe sprawdzanie adresów blokuje limit prób (30 / 15 min z jednego IP).
+# Pełne ukrycie wymaga weryfikacji emaila — poza MVP.
+POST {{api}}/auth/register
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "email": "klient@example.com",
+  "password": "dlugie-haslo-123",
+  "name": "Ktoś Inny"
+}
+
+### Logowanie klienta (200 + cookie zia_session)
+POST {{api}}/auth/login
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "email": "klient@example.com",
+  "password": "change-me-klient-123"
+}
+
+### Logowanie — złe hasło (401, ten sam komunikat co przy nieznanym emailu)
+POST {{api}}/auth/login
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "email": "klient@example.com",
+  "password": "zle-haslo-12345"
+}
+
+### Zalogowany klient (200 po loginie, 401 bez sesji)
+GET {{api}}/me
+
+### Klient zalogowany w sklepie wchodzi do panelu (401)
+# Sesje sklepu i panelu są rozdzielone: osobne cookies (zia_session / zia_admin_session)
+# i osobny zakres sesji w bazie (scope STOREFRONT / ADMIN). Panel czyta tylko
+# zia_admin_session, więc sesja sklepu tu nie istnieje — stąd 401, a nie 403.
+# Uruchom po „Logowanie klienta", zanim zalogujesz się jako admin (klient trzyma
+# cookies obu aplikacji naraz; z cookie admina odpowiedź byłaby 200).
+GET {{api}}/admin/me
+
+### Wylogowanie (204)
+POST {{api}}/auth/logout
+Origin: {{storefront}}
+
+### Bez nagłówka Origin (403 — ochrona CSRF)
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "klient@example.com",
+  "password": "change-me-klient-123"
+}
+
+# ---------------------------------------------------------------- Panel
+
+### Logowanie admina (200 + cookie zia_admin_session, 8 h)
+POST {{api}}/admin/auth/login
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "change-me-admin-123"
+}
+
+### Logowanie do panelu kontem klienta (401 — jak złe hasło)
+POST {{api}}/admin/auth/login
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "email": "klient@example.com",
+  "password": "change-me-klient-123"
+}
+
+### Zalogowany admin (200; 401 bez sesji panelu)
+GET {{api}}/admin/me
+
+### Wylogowanie z panelu (204)
+POST {{api}}/admin/auth/logout
+Origin: {{admin}}

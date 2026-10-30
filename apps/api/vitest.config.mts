@@ -6,6 +6,26 @@ export default defineConfig({
   // which NestJS dependency injection relies on, so SWC compiles the tests.
   plugins: [swc.vite()],
   test: {
-    include: ['src/**/*.test.ts'],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          include: ['src/**/*.test.ts'],
+          exclude: ['src/**/*.int.test.ts'],
+        },
+      },
+      {
+        // Real PostgreSQL (test database, see test/test-database.ts); needs `pnpm db:up`
+        extends: true,
+        test: {
+          name: 'integration',
+          include: ['src/**/*.int.test.ts'],
+          globalSetup: ['test/global-setup.ts'],
+          // Files share one database, so they must not run concurrently
+          fileParallelism: false,
+        },
+      },
+    ],
   },
 });
