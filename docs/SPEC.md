@@ -54,12 +54,12 @@ InPost ShipX, kody rabatowe, subskrypcje, recenzje, Meilisearch.
 - **Address**: id, userId, fullName, street, city, postalCode, phone
 - **Category**: id, name, slug (unique), parentId (nullable)
 - **Origin**: id, name (unique), slug (unique) — słownik pochodzenia kawy
-- **Product**: id, name, slug (unique), description, status (DRAFT | ACTIVE | ARCHIVED), categoryId, originId, roastLevel (enum RoastLevel: LIGHT | MEDIUM | DARK), flavorNotes (string[], lowercase), brewMethods (enum BrewMethod[]: ESPRESSO | POUR_OVER | AEROPRESS | FRENCH_PRESS | MOKA), minPrice (int, grosze, denormalizowane), embedding (vector, faza AI), createdAt, updatedAt
+- **Product**: id, kind (enum ProductKind: COFFEE | ACCESSORY), name, slug (unique), description, metaTitle (nullable), metaDescription (nullable), status (DRAFT | ACTIVE | ARCHIVED), categoryId, originId (nullable, wymagane dla COFFEE), roastLevel (enum RoastLevel: LIGHT | MEDIUM | DARK; nullable, wymagane dla COFFEE), flavorNotes (string[], lowercase), brewMethods (enum BrewMethod[]: ESPRESSO | POUR_OVER | AEROPRESS | FRENCH_PRESS | MOKA), minPrice (int, grosze, denormalizowane), embedding (vector, faza AI), createdAt, updatedAt
 - **ProductVariant**: id, productId, sku (unique), label (np. „250 g / ziarno"), price (int, grosze), stock (int), isActive (boolean)
 - **ProductImage**: id, productId, url, alt, position
 - **Cart**: id, userId (nullable), guestToken (nullable), updatedAt
 - **CartItem**: id, cartId, variantId, quantity
-- **Order**: id, number (czytelny, np. ZIA-2026-000123), userId (nullable), email, status (PENDING | PAID | SHIPPED | DELIVERED | CANCELLED), subtotal, shippingCost, total (int, grosze), shippingAddress (JSON — kopia), stripePaymentIntentId, createdAt
+- **Order**: id, number (czytelny, np. ZIA-2026-000123), userId (nullable), email, status (PENDING | PAID | SHIPPED | DELIVERED | CANCELLED), subtotal, shippingCost, total (int, grosze), shippingAddress (JSON — kopia), stripePaymentIntentId, createdAt, updatedAt
 - **OrderItem**: id, orderId, variantId (wymagane), productName, variantLabel, sku, unitPrice, quantity — kopia danych z chwili zakupu
 - **StripeEvent**: id (id zdarzenia ze Stripe), type, processedAt — rejestr przetworzonych webhooków
 
@@ -146,6 +146,8 @@ Zasady:
 - `flavorNotes` — wolny tekst zapisywany lowercase, bez filtrowania (tylko wyświetlanie i AI).
 - `Product.minPrice` denormalizowane, przeliczane przy każdej zmianie wariantów; filtr i sortowanie po cenie używają `minPrice`.
 - Filtr kategorii obejmuje wszystkie podkategorie danej kategorii.
+- **Kategoria = nawigacja, `kind` = struktura danych.** `Product.kind` (COFFEE | ACCESSORY) mówi, jakie pola produkt musi mieć; drzewo kategorii służy tylko do nawigacji i filtrów. `originId` i `roastLevel` są nullable (akcesoria ich nie mają), ale dla `kind = COFFEE` wymagane — ta sama reguła w CHECK constraint w bazie (`products_coffee_fields_check`) i w schemacie Zod (`productAttributesSchema` w `packages/shared`).
+- `Product.minPrice` jest `null`, gdy produkt nie ma aktywnych wariantów (np. szkic).
 
 ### 7.5 Pliki, usuwanie danych, koszyk
 

@@ -9,3 +9,5 @@ allowBuilds:
   prisma: true
   # Usage telemetry pulled in by swagger-ui-dist; not needed
   '@scarf/scarf': false
+  # Pulled in by tsx; the binary comes from @esbuild/<platform>, the script only verifies it
+  esbuild: false

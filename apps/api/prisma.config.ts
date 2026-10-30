@@ -11,6 +11,11 @@ if (existsSync(rootEnvFile)) {
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
+  migrations: {
+    path: 'prisma/migrations',
+    // Run by `prisma db seed` (Prisma 7 no longer seeds automatically after migrate dev/reset)
+    seed: 'tsx prisma/seed/seed.ts',
+  },
   datasource: {
     // Not validated here: `prisma generate` must work without a database (e.g. in CI)
     url: process.env.DATABASE_URL ?? '',
