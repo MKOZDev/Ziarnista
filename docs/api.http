@@ -288,22 +288,21 @@ Origin: {{admin}}
 # Wymaga sesji panelu ("Logowanie admina"). Ceny w groszach. Produkt powstaje zawsze jako
 # szkic (DRAFT); publikacja (ACTIVE) wymaga aktywnego wariantu i zdjęcia.
 #
-# Id kategorii i pochodzenia bez kopiowania: bierzemy je z produktów z seeda, wyszukanych po
-# slugu (?q=...&pageSize=1 daje jeden wynik). Ścieżki JSONPath są proste (items[0].id,
-# categoryId), bez filtrów ?(...), które nie rozwiązywały się w REST Client.
-# Kolejność: wyślij trzy requesty "Wzór" poniżej, potem "Nowy produkt".
+# Id kategorii, pochodzenia i wariantu bierzemy z odpowiedzi nazwanych requestów filtrem
+# JSONPath po slugu / SKU, np. productCategories.response.body.$[?(@.slug=='przelew')].id
+# (w podwójnych klamrach). REST Client zwraca pierwsze dopasowanie. Najpierw wyślij dwa requesty poniżej
+# (seed: kategoria "przelew" i "akcesoria", pochodzenie "kolumbia").
+#
+# Czerwone podkreślenie zmiennych z filtrem ?(...) to ograniczenie diagnostyki REST Client
+# — zapytania działają po wysłaniu productCategories i productOrigins.
 
-### Wzór kawy: Etiopia Guji Hambela z seeda (kategoria "Przelew", pochodzenie "Etiopia")
-# @name templateCoffee
-GET {{api}}/admin/products?q=etiopia-guji-hambela&pageSize=1
+### Kategorie do formularza produktu (wyślij przed "Nowy produkt")
+# @name productCategories
+GET {{api}}/admin/categories
 
-### Wzór kawy — szczegóły (lista nie zwraca originId)
-# @name templateCoffeeDetail
-GET {{api}}/admin/products/{{templateCoffee.response.body.$.items[0].id}}
-
-### Wzór akcesorium: młynek Timemore C3 z seeda (kategoria "Akcesoria")
-# @name templateAccessory
-GET {{api}}/admin/products?q=mlynek-timemore-c3&pageSize=1
+### Pochodzenia do formularza produktu (wyślij przed "Nowy produkt")
+# @name productOrigins
+GET {{api}}/admin/origins
 
 ### Lista: wszystkie statusy, ostatnio zmieniane pierwsze, 20 na stronę
 GET {{api}}/admin/products
