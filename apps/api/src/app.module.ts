@@ -2,6 +2,7 @@ import { Module, type DynamicModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
+import { CartModule } from './cart/cart.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { ConfigModule } from './config/config.module';
 import type { Env } from './config/env.schema';
@@ -21,6 +22,7 @@ export class AppModule {
         AuthModule,
         CatalogModule,
         AdminModule,
+        CartModule,
       ],
       // Global, so no mutating endpoint can forget the CSRF check
       providers: [{ provide: APP_GUARD, useClass: OriginGuard }],

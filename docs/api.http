@@ -512,3 +512,128 @@ Origin: {{admin}}
 ### Usunięcie ostatniego zdjęcia opublikowanego produktu (400 — najpierw zmień status na szkic)
 DELETE {{api}}/admin/images/{{uploadImage2.response.body.$.images[1].id}}
 Origin: {{admin}}
+
+# ---------------------------------------------------------------- Koszyk
+# Działa dla gościa (cookie zia_cart) i zalogowanego klienta (koszyk po koncie). Ceny zawsze
+# aktualne z katalogu, w groszach; wysyłka 14,99 zł, darmowa od 150 zł. Każda zmiana zwraca
+# cały koszyk. Scenariusz da się powtarzać: na końcu rejestruje nowe konto
+# (klient-<timestamp>@example.com), do którego przechodzi koszyk gościa.
+# Warianty z seeda: Etiopia Guji Hambela (250 g: 30 szt., 1 kg: 6 szt.),
+# młynek Timemore C3 (czarny: 7 szt., biały: 0 szt.).
+
+### Najpierw wyloguj klienta, żeby zacząć jako gość (REST Client pamięta cookies z całego pliku)
+POST {{api}}/auth/logout
+Origin: {{storefront}}
+
+### Produkty do koszyka (warianty od najtańszego)
+# @name cartCoffee
+GET {{api}}/products/etiopia-guji-hambela
+
+###
+# @name cartGrinder
+GET {{api}}/products/mlynek-timemore-c3
+
+### Koszyk gościa bez cookie — pusty, nic się nie zapisuje
+GET {{api}}/cart
+
+### Dodanie 2 × 250 g — pierwszy zapis tworzy koszyk i ustawia cookie zia_cart
+# @name addToCart
+POST {{api}}/cart/items
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "variantId": "{{cartCoffee.response.body.$.variants[0].id}}",
+  "quantity": 2
+}
+
+### Ten sam wariant jeszcze raz — ilość rośnie do 3 (jedna pozycja)
+POST {{api}}/cart/items
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "variantId": "{{cartCoffee.response.body.$.variants[0].id}}"
+}
+
+### Więcej niż w magazynie (1 kg: 6 szt.) — 409, "available": ile da się dodać; koszyk bez zmian
+POST {{api}}/cart/items
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "variantId": "{{cartCoffee.response.body.$.variants[1].id}}",
+  "quantity": 50
+}
+
+### Wariant wyprzedany (młynek biały, stan 0) — 409 OUT_OF_STOCK, "available": 0
+POST {{api}}/cart/items
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "variantId": "{{cartGrinder.response.body.$.variants[1].id}}"
+}
+
+### Ilość spoza 1–99 (400 z path "quantity")
+POST {{api}}/cart/items
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "variantId": "{{cartCoffee.response.body.$.variants[0].id}}",
+  "quantity": 100
+}
+
+### Młynek czarny (349 zł) — suma przekracza 150 zł, wysyłka 0
+# @name addGrinder
+POST {{api}}/cart/items
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "variantId": "{{cartGrinder.response.body.$.variants[0].id}}"
+}
+
+### Zmiana ilości kawy na 5 (ustawia ilość, nie dodaje)
+PATCH {{api}}/cart/items/{{addToCart.response.body.$.items[0].id}}
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "quantity": 5
+}
+
+### Zmiana ilości ponad stan — 409, "available": największa możliwa ilość
+PATCH {{api}}/cart/items/{{addToCart.response.body.$.items[0].id}}
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "quantity": 99
+}
+
+### Usunięcie młynka — odpowiedź to koszyk bez niego
+DELETE {{api}}/cart/items/{{addGrinder.response.body.$.items[1].id}}
+Origin: {{storefront}}
+
+### Rejestracja nowego konta — koszyk gościa przechodzi na konto, cookie zia_cart jest czyszczone
+POST {{api}}/auth/register
+Origin: {{storefront}}
+Content-Type: application/json
+
+{
+  "email": "klient-{{$timestamp}}@example.com",
+  "password": "dlugie-haslo-123",
+  "name": "Klient z api.http"
+}
+
+### Koszyk zalogowanego — ta sama kawa (5 szt.), teraz przypisana do konta
+GET {{api}}/cart
+
+### Po wylogowaniu znów gość bez koszyka (koszyk zostaje na koncie)
+POST {{api}}/auth/logout
+Origin: {{storefront}}
+
+###
+GET {{api}}/cart

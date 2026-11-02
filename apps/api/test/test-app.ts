@@ -58,11 +58,13 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<TestA
 }
 
 /**
- * CASCADE also empties the tables referencing these (sessions, carts, orders, variants,
- * images, ...).
+ * CASCADE also empties the tables referencing these (sessions, user carts, orders, variants,
+ * images, ...). Guest carts reference no user, so carts is listed explicitly.
  */
 export async function resetDatabase(prisma: PrismaService): Promise<void> {
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE users, products, categories, origins CASCADE');
+  await prisma.$executeRawUnsafe(
+    'TRUNCATE TABLE users, carts, products, categories, origins CASCADE',
+  );
 }
 
 export async function createUser(
