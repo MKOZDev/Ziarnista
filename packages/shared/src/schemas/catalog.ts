@@ -9,7 +9,7 @@ export const CATALOG_DEFAULT_PAGE_SIZE = 24;
 export const CATALOG_MAX_PAGE_SIZE = 48;
 export const CATALOG_SEARCH_MAX_LENGTH = 100;
 /** Upper bound of a PostgreSQL int column (prices are stored as int grosze) */
-const MAX_PRICE = 2_147_483_647;
+export const PG_INT_MAX = 2_147_483_647;
 
 export const slugSchema = z
   .string()
@@ -20,7 +20,7 @@ export const productSortSchema = z.enum(['newest', 'price_asc', 'price_desc', 'n
 
 export type ProductSort = z.infer<typeof productSortSchema>;
 
-const priceFilterSchema = z.coerce.number().int().min(0).max(MAX_PRICE);
+const priceFilterSchema = z.coerce.number().int().min(0).max(PG_INT_MAX);
 
 /** ?brewMethod=A&brewMethod=B — Express parses one value as a string and several as an array */
 function oneOrMany<T extends z.ZodType>(item: T) {

@@ -283,3 +283,135 @@ Content-Type: application/json
 ### Usunięcie nieużywanego pochodzenia (204); używane, np. Etiopia z seeda, daje 409
 DELETE {{api}}/admin/origins/{{createOrigin.response.body.id}}
 Origin: {{admin}}
+
+# ---------------------------------------------------------------- Admin: produkty
+# Wymaga sesji panelu ("Logowanie admina"). Ceny w groszach. Produkt powstaje zawsze jako
+# szkic (DRAFT); publikacja (ACTIVE) wymaga aktywnego wariantu i zdjęcia.
+#
+# Id kategorii i pochodzenia bez kopiowania: bierzemy je z produktów z seeda, wyszukanych po
+# slugu (?q=...&pageSize=1 daje jeden wynik). Ścieżki JSONPath są proste (items[0].id,
+# categoryId), bez filtrów ?(...), które nie rozwiązywały się w REST Client.
+# Kolejność: wyślij trzy requesty "Wzór" poniżej, potem "Nowy produkt".
+
+### Wzór kawy: Etiopia Guji Hambela z seeda (kategoria "Przelew", pochodzenie "Etiopia")
+# @name templateCoffee
+GET {{api}}/admin/products?q=etiopia-guji-hambela&pageSize=1
+
+### Wzór kawy — szczegóły (lista nie zwraca originId)
+# @name templateCoffeeDetail
+GET {{api}}/admin/products/{{templateCoffee.response.body.$.items[0].id}}
+
+### Wzór akcesorium: młynek Timemore C3 z seeda (kategoria "Akcesoria")
+# @name templateAccessory
+GET {{api}}/admin/products?q=mlynek-timemore-c3&pageSize=1
+
+### Lista: wszystkie statusy, ostatnio zmieniane pierwsze, 20 na stronę
+GET {{api}}/admin/products
+
+### Szkice kawy, od najtańszej (produkty bez aktywnego wariantu na końcu)
+GET {{api}}/admin/products?status=DRAFT&kind=COFFEE&sort=price_asc
+
+### Wyszukiwanie po nazwie, slugu lub SKU (bez rozróżniania wielkości liter)
+GET {{api}}/admin/products?q=eth-hambela
+
+### Nowy produkt z wariantami — jedna transakcja; slug z nazwy: "panama-boquete-geisha"
+# @name createProduct
+POST {{api}}/admin/products
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "kind": "COFFEE",
+  "name": "Panama Boquete Geisha",
+  "categoryId": "{{productCategories.response.body.$[?(@.slug=='przelew')].id}}",
+  "originId": "{{productOrigins.response.body.$[?(@.slug=='kolumbia')].id}}",
+  "roastLevel": "LIGHT",
+  "flavorNotes": ["Jaśmin", "bergamotka", "brzoskwinia"],
+  "brewMethods": ["POUR_OVER", "AEROPRESS"],
+  "variants": [
+    { "sku": "pan-geisha-100-z", "label": "100 g / ziarno", "price": 8900, "stock": 10 },
+    { "sku": "PAN-GEISHA-250-Z", "label": "250 g / ziarno", "price": 19900, "stock": 4 }
+  ]
+}
+
+### SKU zajęte przez inny produkt (409; errors wskazuje wariant; produkt nie powstaje)
+POST {{api}}/admin/products
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "kind": "ACCESSORY",
+  "name": "Testowy produkt",
+  "categoryId": "{{productCategories.response.body.$[?(@.slug=='akcesoria')].id}}",
+  "variants": [
+    { "sku": "NOWY-1", "label": "sztuka", "price": 1000, "stock": 1 },
+    { "sku": "PAN-GEISHA-100-Z", "label": "sztuka", "price": 1000, "stock": 1 }
+  ]
+}
+
+### Szczegóły do formularza: wszystkie warianty (także nieaktywne) i zdjęcia
+GET {{api}}/admin/products/{{createProduct.response.body.id}}
+
+### Edycja danych (zmiana nazwy nie zmienia slugu; pusty metaTitle zapisywany jako null)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Panama Boquete Geisha Washed",
+  "description": "Klasyczna geisha z Boquete.",
+  "metaTitle": ""
+}
+
+### Zmiana na akcesorium bez wyczyszczenia pól kawy (400: originId, roastLevel)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "kind": "ACCESSORY"
+}
+
+### Publikacja bez zdjęcia (400 "Nie można opublikować produktu", errors: images)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "status": "ACTIVE"
+}
+
+### Nowy wariant — odpowiedź to cały produkt z przeliczonym minPrice (tu 4900)
+# @name addVariant
+POST {{api}}/admin/products/{{createProduct.response.body.id}}/variants
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "sku": "PAN-GEISHA-50-Z",
+  "label": "50 g / ziarno",
+  "price": 4900,
+  "stock": 20
+}
+
+### Wyłączenie najtańszego wariantu (minPrice wraca do 8900); wariantów się nie usuwa
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}/variants/{{addVariant.response.body.$.variants[?(@.sku=='PAN-GEISHA-50-Z')].id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "isActive": false
+}
+
+### Archiwizacja (204; produkt i warianty zostają, status ARCHIVED; powtórka też 204)
+DELETE {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+
+### Przywrócenie z archiwum jako szkic
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "status": "DRAFT"
+}

@@ -240,8 +240,14 @@ describe('admin categories (/admin/categories)', () => {
       await remove(MISSING_ID).expect(404);
     });
 
-    it('returns 400 for a malformed id', async () => {
-      await remove('nie-uuid').expect(400);
+    it('returns 400 for a malformed id, naming the path parameter', async () => {
+      const response = await remove('nie-uuid').expect(400);
+
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: 'Nieprawidłowe dane',
+        errors: [{ path: 'id', message: 'Nieprawidłowy identyfikator' }],
+      });
     });
   });
 });

@@ -12,7 +12,7 @@ const nameSchema = z
   .min(1, 'Podaj nazwę')
   .max(DICTIONARY_NAME_MAX_LENGTH, `Nazwa może mieć najwyżej ${DICTIONARY_NAME_MAX_LENGTH} znaków`);
 
-const idSchema = z.uuid('Nieprawidłowy identyfikator');
+export const idSchema = z.uuid('Nieprawidłowy identyfikator');
 
 const countSchema = z.number().int().min(0);
 
@@ -22,7 +22,7 @@ const countSchema = z.number().int().min(0);
  * Zod 4 runs object refinements even when a field check (here min(1)) failed; an empty name
  * already has its own error, so it is skipped to report one message per problem.
  */
-function requireSlugSource(
+export function requireSlugSource(
   value: { name: string; slug?: string | undefined },
   ctx: z.RefinementCtx,
 ) {

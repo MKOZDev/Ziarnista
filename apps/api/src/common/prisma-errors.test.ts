@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Prisma } from '../generated/prisma/client';
 import {
+  isCheckViolation,
+  isForeignKeyViolation,
   isPrismaError,
   isUniqueViolation,
   PrismaErrorCode,
@@ -53,5 +55,42 @@ describe('prisma errors', () => {
   it('checks the error code', () => {
     expect(isPrismaError(uniqueViolation('x'), PrismaErrorCode.UniqueViolation)).toBe(true);
     expect(isPrismaError(uniqueViolation('x'), PrismaErrorCode.RecordNotFound)).toBe(false);
+  });
+});
+
+describe('constraint names outside cause.constraint', () => {
+  // A CHECK violation has no constraint field; the name is only in the message (P2039)
+  const checkViolation = new Prisma.PrismaClientKnownRequestError('Database error', {
+    code: 'P2039',
+    clientVersion: 'test',
+    meta: {
+      driverAdapterError: {
+        cause: {
+          originalCode: '23514',
+          originalMessage:
+            'new row for relation "products" violates check constraint "products_coffee_fields_check"',
+        },
+      },
+    },
+  });
+
+  it('reads the CHECK constraint name from the message', () => {
+    expect(violatedConstraint(checkViolation)).toBe('products_coffee_fields_check');
+    expect(isCheckViolation(checkViolation, 'products_coffee_fields_check')).toBe(true);
+    expect(isCheckViolation(checkViolation, 'products_min_price_check')).toBe(false);
+  });
+
+  it('matches a foreign key violation by constraint', () => {
+    const error = new Prisma.PrismaClientKnownRequestError('Foreign key', {
+      code: 'P2003',
+      clientVersion: 'test',
+      meta: {
+        driverAdapterError: { cause: { constraint: { index: 'products_origin_id_fkey' } } },
+      },
+    });
+
+    expect(isForeignKeyViolation(error, 'products_origin_id_fkey')).toBe(true);
+    expect(isForeignKeyViolation(error, 'products_category_id_fkey')).toBe(false);
+    expect(isForeignKeyViolation(checkViolation, 'products_origin_id_fkey')).toBe(false);
   });
 });

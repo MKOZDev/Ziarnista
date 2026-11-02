@@ -53,7 +53,8 @@ export async function createProduct(
   product: ProductFixture,
 ): Promise<string> {
   const variants = product.variants.map((variant, index) => ({
-    sku: `${product.slug}-${index}`,
+    // Uppercase, like every SKU saved through the API (the Zod schema normalizes it)
+    sku: `${product.slug.toUpperCase()}-${index}`,
     label: `wariant ${index}`,
     price: variant.price,
     stock: variant.stock ?? 10,
