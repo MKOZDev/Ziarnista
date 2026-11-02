@@ -11,3 +11,9 @@ export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionC
   }
   return user satisfies PublicUser;
 });
+
+/** The logged-in user on an @OptionalAuth() route, or null for a guest. */
+export const OptionalUser = createParamDecorator(
+  (_data: unknown, ctx: ExecutionContext): PublicUser | null =>
+    ctx.switchToHttp().getRequest<AuthenticatedRequest>().user ?? null,
+);

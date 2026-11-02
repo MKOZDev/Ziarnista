@@ -110,13 +110,19 @@ Zasady:
 
 0. Specyfikacja ✅
 1. Środowisko, Claude Code, szkielet monorepo, Docker
-2. Backend core (Prisma, auth, produkty, kategorie, zamówienia, testy)
-3. Panel admina
-4. Storefront + Stripe
-5. Funkcje AI
-6. Testy E2E + CI
+2. Backend core (zakończona)
+3. Design system: makiety w Claude Design, packages/ui (tokeny, prymitywy, Storybook, axe) +
+   panel admina (Redux Toolkit, RTK Query, generyczna DataTable, formularze, zamówienia,
+   dashboard)
+4. Sklep + Stripe ze zwrotami, widok rozliczeń z eksportem CSV, moduł zgód RODO, baner
+   promocyjny, WCAG
+5. AI: wyszukiwarka po opisie smaku, podobne kawy, generowanie opisów
+6. Jakość: Playwright E2E, testy wizualne, axe w CI, Sentry, Web Vitals
 7. Deploy na VPS
-8. README, demo, opis decyzji
+8. README po angielsku, demo, case study pracy z Claude Code (`docs/ai-log.md`)
+9. Opcjonalnie: `apps/marketing` — Next.js + Sanity na Vercelu, migracja z Webflow
+
+Poza zakresem: Module Federation, Meilisearch. BullMQ opcjonalnie.
 
 ## 7. Decyzje techniczne
 

@@ -2,7 +2,7 @@ import { applyDecorators, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiForbiddenResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Role, SessionScope } from '../../generated/prisma/enums';
 import { RolesGuard } from '../guards/roles.guard';
-import { SessionGuard } from '../guards/session.guard';
+import { OptionalSessionGuard, SessionGuard } from '../guards/session.guard';
 import { Roles } from './roles.decorator';
 import { UseSessionScope } from './session-scope.decorator';
 
@@ -29,5 +29,17 @@ export function AdminAuth(): MethodDecorator & ClassDecorator {
     ApiCookieAuth(ADMIN_SESSION_AUTH),
     ApiUnauthorizedResponse({ description: 'Brak sesji panelu lub sesja wygasła' }),
     ApiForbiddenResponse({ description: 'Konto nie ma roli ADMIN' }),
+  );
+}
+
+/**
+ * Storefront route open to guests: with a valid session cookie the user is known
+ * (@OptionalUser()), without one the request goes on as a guest. Never a 401.
+ */
+export function OptionalAuth(): MethodDecorator & ClassDecorator {
+  return applyDecorators(
+    UseSessionScope(SessionScope.STOREFRONT),
+    UseGuards(OptionalSessionGuard),
+    ApiCookieAuth(STOREFRONT_SESSION_AUTH),
   );
 }
