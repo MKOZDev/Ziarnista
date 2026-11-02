@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SLUG_MAX_LENGTH } from '../slug';
 import { paginatedSchema, paginationQuery } from './pagination';
 import { brewMethodSchema, productKindSchema, roastLevelSchema } from './product';
 
@@ -12,7 +13,7 @@ const MAX_PRICE = 2_147_483_647;
 
 export const slugSchema = z
   .string()
-  .max(200)
+  .max(SLUG_MAX_LENGTH)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Nieprawidłowy slug');
 
 export const productSortSchema = z.enum(['newest', 'price_asc', 'price_desc', 'name']);

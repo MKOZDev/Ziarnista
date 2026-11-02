@@ -4,6 +4,8 @@ import { Test } from '@nestjs/testing';
 import { configureApp } from '../src/app-setup';
 import { AppModule } from '../src/app.module';
 import { hashPassword } from '../src/auth/password';
+import { SESSION_POLICIES } from '../src/auth/session-policy';
+import { generateSessionToken, hashSessionToken } from '../src/auth/session-token';
 import { envSchema } from '../src/config/env.schema';
 import type { Role } from '../src/generated/prisma/enums';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -61,6 +63,24 @@ export async function createUser(
     },
     select: { id: true },
   });
+}
+
+/**
+ * Cookie header of a panel session created directly in the database, for tests of admin
+ * endpoints (skips the login endpoint and its rate limit). The user's role is not checked
+ * here, so it also builds the "admin-scoped session of a customer" case.
+ */
+export async function adminSessionCookie(prisma: PrismaService, userId: string): Promise<string> {
+  const token = generateSessionToken();
+  await prisma.session.create({
+    data: {
+      id: hashSessionToken(token),
+      userId,
+      scope: 'ADMIN',
+      expiresAt: new Date(Date.now() + SESSION_POLICIES.ADMIN.ttlMs),
+    },
+  });
+  return `${SESSION_POLICIES.ADMIN.cookieName}=${token}`;
 }
 
 /** Value of a cookie from the Set-Cookie headers of a response, with its attributes. */

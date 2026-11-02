@@ -177,3 +177,109 @@ GET {{api}}/admin/me
 ### Wylogowanie z panelu (204)
 POST {{api}}/admin/auth/logout
 Origin: {{admin}}
+
+# ---------------------------------------------------------------- Admin: kategorie
+# Wymaga sesji panelu: najpierw "Logowanie admina" powyżej (i bez "Wylogowania z panelu").
+# Requesty z "# @name" zapamiętują odpowiedź; {{nazwa.response.body.id}} to składnia
+# VS Code REST Client — w JetBrains wklej id z odpowiedzi ręcznie.
+
+### Lista kategorii (płaska, z parentId i liczbą produktów w każdym statusie)
+GET {{api}}/admin/categories
+
+### Nowa kategoria — slug z nazwy, polskie znaki na łacińskie: "drippery-i-lejki"
+# @name createCategory
+POST {{api}}/admin/categories
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Drippery i lejki"
+}
+
+### Ta sama nazwa drugi raz — slug z sufiksem: "drippery-i-lejki-2"
+# @name createCategoryDuplicate
+POST {{api}}/admin/categories
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Drippery i lejki"
+}
+
+### Ręczny slug, który jest zajęty (409)
+POST {{api}}/admin/categories
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Kawa 2",
+  "slug": "kawa"
+}
+
+### Przeniesienie pod drugą kategorię (200; zmiana nazwy nie zmienia slugu)
+PATCH {{api}}/admin/categories/{{createCategoryDuplicate.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Lejki",
+  "parentId": "{{createCategory.response.body.id}}"
+}
+
+### Cykl: kategoria pod własną podkategorią (400)
+PATCH {{api}}/admin/categories/{{createCategory.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "parentId": "{{createCategoryDuplicate.response.body.id}}"
+}
+
+### Usunięcie kategorii z podkategorią (409 z komunikatem)
+DELETE {{api}}/admin/categories/{{createCategory.response.body.id}}
+Origin: {{admin}}
+
+### Usunięcie pustej kategorii (204), potem jej rodzica (204)
+DELETE {{api}}/admin/categories/{{createCategoryDuplicate.response.body.id}}
+Origin: {{admin}}
+
+###
+DELETE {{api}}/admin/categories/{{createCategory.response.body.id}}
+Origin: {{admin}}
+
+# ---------------------------------------------------------------- Admin: pochodzenia
+
+### Lista pochodzeń z liczbą produktów
+GET {{api}}/admin/origins
+
+### Nowe pochodzenie (slug "wybrzeze-kosci-sloniowej")
+# @name createOrigin
+POST {{api}}/admin/origins
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Wybrzeże Kości Słoniowej"
+}
+
+### Nazwa zajęta — wielkość liter się nie liczy (409)
+POST {{api}}/admin/origins
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "ETIOPIA"
+}
+
+### Zmiana nazwy (slug bez zmian)
+PATCH {{api}}/admin/origins/{{createOrigin.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Côte d'Ivoire"
+}
+
+### Usunięcie nieużywanego pochodzenia (204); używane, np. Etiopia z seeda, daje 409
+DELETE {{api}}/admin/origins/{{createOrigin.response.body.id}}
+Origin: {{admin}}
