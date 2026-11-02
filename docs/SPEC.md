@@ -122,7 +122,7 @@ Zasady:
 8. README po angielsku, demo, case study pracy z Claude Code (`docs/ai-log.md`)
 9. Opcjonalnie: `apps/marketing` — Next.js + Sanity na Vercelu, migracja z Webflow
 
-Poza zakresem: Module Federation, Meilisearch. BullMQ opcjonalnie.
+Poza zakresem: Module Federation, Meilisearch, Figma. BullMQ opcjonalnie.
 
 ## 7. Decyzje techniczne
 
