@@ -1,5 +1,6 @@
 import { Module, type DynamicModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { ConfigModule } from './config/config.module';
@@ -13,7 +14,14 @@ export class AppModule {
   static forRoot(env: Env): DynamicModule {
     return {
       module: AppModule,
-      imports: [ConfigModule.forRoot(env), PrismaModule, HealthModule, AuthModule, CatalogModule],
+      imports: [
+        ConfigModule.forRoot(env),
+        PrismaModule,
+        HealthModule,
+        AuthModule,
+        CatalogModule,
+        AdminModule,
+      ],
       // Global, so no mutating endpoint can forget the CSRF check
       providers: [{ provide: APP_GUARD, useClass: OriginGuard }],
     };

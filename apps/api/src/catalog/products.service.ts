@@ -10,6 +10,13 @@ import {
   type ProductListResponse,
 } from '@ziarnista/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  productImageOrder,
+  productImageSelect,
+  toProductImage,
+  type PublicUrl,
+} from '../products/product-image';
+import { StorageService } from '../storage/storage.service';
 import { CategoriesService } from './categories.service';
 import {
   productPageSql,
@@ -23,10 +30,15 @@ export const PRODUCT_NOT_FOUND_MESSAGE = 'Nie znaleziono produktu';
 
 @Injectable()
 export class ProductsService {
+  private readonly publicUrl: PublicUrl;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly categories: CategoriesService,
-  ) {}
+    storage: StorageService,
+  ) {
+    this.publicUrl = (key) => storage.publicUrl(key);
+  }
 
   /**
    * 2–3 queries: the category tree (only with ?category=), then the page and the
@@ -41,7 +53,7 @@ export class ProductsService {
 
     const total = stats.find((row) => row.facet === 'total')?.count ?? 0;
     return {
-      items: rows.map(toListItem),
+      items: rows.map((row) => toListItem(row, this.publicUrl)),
       page: query.page,
       pageSize: query.pageSize,
       total,
@@ -77,10 +89,7 @@ export class ProductsService {
             orderBy: [{ price: 'asc' }, { id: 'asc' }],
             select: { id: true, sku: true, label: true, price: true, stock: true },
           },
-          images: {
-            orderBy: [{ position: 'asc' }, { id: 'asc' }],
-            select: { id: true, url: true, alt: true },
-          },
+          images: { orderBy: productImageOrder, select: { id: true, ...productImageSelect } },
         },
       }),
       this.categories.loadTree(),
@@ -90,7 +99,7 @@ export class ProductsService {
       throw new NotFoundException(PRODUCT_NOT_FOUND_MESSAGE);
     }
 
-    const { categoryId, variants, ...rest } = product;
+    const { categoryId, variants, images, ...rest } = product;
     const breadcrumbs = tree.path(categoryId);
     const category = breadcrumbs.at(-1);
     if (!category) {
@@ -102,6 +111,7 @@ export class ProductsService {
       category,
       breadcrumbs,
       variants: variants.map(({ stock, ...variant }) => ({ ...variant, inStock: stock > 0 })),
+      images: images.map((image) => toProductImage(image, this.publicUrl)),
     };
   }
 
@@ -116,7 +126,7 @@ export class ProductsService {
   }
 }
 
-function toListItem(row: ProductListRow): ProductListItem {
+function toListItem(row: ProductListRow, publicUrl: PublicUrl): ProductListItem {
   return {
     id: row.id,
     slug: row.slug,
@@ -130,7 +140,16 @@ function toListItem(row: ProductListRow): ProductListItem {
         : null,
     flavorNotes: row.flavorNotes,
     brewMethods: row.brewMethods,
-    image: row.imageUrl !== null ? { url: row.imageUrl, alt: row.imageAlt ?? '' } : null,
+    // The image columns come from one LEFT JOIN: all null (no image) or all set
+    image:
+      row.imageKey !== null
+        ? {
+            url: publicUrl(row.imageKey),
+            alt: row.imageAlt ?? '',
+            width: row.imageWidth ?? 0,
+            height: row.imageHeight ?? 0,
+          }
+        : null,
     inStock: row.inStock,
   };
 }

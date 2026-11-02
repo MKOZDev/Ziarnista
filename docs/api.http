@@ -177,3 +177,338 @@ GET {{api}}/admin/me
 ### Wylogowanie z panelu (204)
 POST {{api}}/admin/auth/logout
 Origin: {{admin}}
+
+# ---------------------------------------------------------------- Admin: kategorie
+# Wymaga sesji panelu: najpierw "Logowanie admina" powyżej (i bez "Wylogowania z panelu").
+# Requesty z "# @name" zapamiętują odpowiedź; {{nazwa.response.body.id}} to składnia
+# VS Code REST Client — w JetBrains wklej id z odpowiedzi ręcznie.
+
+### Lista kategorii (płaska, z parentId i liczbą produktów w każdym statusie)
+GET {{api}}/admin/categories
+
+### Nowa kategoria — slug z nazwy, polskie znaki na łacińskie: "drippery-i-lejki"
+# @name createCategory
+POST {{api}}/admin/categories
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Drippery i lejki"
+}
+
+### Ta sama nazwa drugi raz — slug z sufiksem: "drippery-i-lejki-2"
+# @name createCategoryDuplicate
+POST {{api}}/admin/categories
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Drippery i lejki"
+}
+
+### Ręczny slug, który jest zajęty (409)
+POST {{api}}/admin/categories
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Kawa 2",
+  "slug": "kawa"
+}
+
+### Przeniesienie pod drugą kategorię (200; zmiana nazwy nie zmienia slugu)
+PATCH {{api}}/admin/categories/{{createCategoryDuplicate.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Lejki",
+  "parentId": "{{createCategory.response.body.id}}"
+}
+
+### Cykl: kategoria pod własną podkategorią (400)
+PATCH {{api}}/admin/categories/{{createCategory.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "parentId": "{{createCategoryDuplicate.response.body.id}}"
+}
+
+### Usunięcie kategorii z podkategorią (409 z komunikatem)
+DELETE {{api}}/admin/categories/{{createCategory.response.body.id}}
+Origin: {{admin}}
+
+### Usunięcie pustej kategorii (204), potem jej rodzica (204)
+DELETE {{api}}/admin/categories/{{createCategoryDuplicate.response.body.id}}
+Origin: {{admin}}
+
+###
+DELETE {{api}}/admin/categories/{{createCategory.response.body.id}}
+Origin: {{admin}}
+
+# ---------------------------------------------------------------- Admin: pochodzenia
+
+### Lista pochodzeń z liczbą produktów
+GET {{api}}/admin/origins
+
+### Nowe pochodzenie (slug "wybrzeze-kosci-sloniowej")
+# @name createOrigin
+POST {{api}}/admin/origins
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Wybrzeże Kości Słoniowej"
+}
+
+### Nazwa zajęta — wielkość liter się nie liczy (409)
+POST {{api}}/admin/origins
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "ETIOPIA"
+}
+
+### Zmiana nazwy (slug bez zmian)
+PATCH {{api}}/admin/origins/{{createOrigin.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Côte d'Ivoire"
+}
+
+### Usunięcie nieużywanego pochodzenia (204); używane, np. Etiopia z seeda, daje 409
+DELETE {{api}}/admin/origins/{{createOrigin.response.body.id}}
+Origin: {{admin}}
+
+# ---------------------------------------------------------------- Admin: produkty
+# Wymaga sesji panelu ("Logowanie admina"). Ceny w groszach. Produkt powstaje zawsze jako
+# szkic (DRAFT); publikacja (ACTIVE) wymaga aktywnego wariantu i zdjęcia.
+#
+# Id kategorii, pochodzenia i wariantu bierzemy z odpowiedzi nazwanych requestów filtrem
+# JSONPath po slugu / SKU, np. productCategories.response.body.$[?(@.slug=='przelew')].id
+# (w podwójnych klamrach). REST Client zwraca pierwsze dopasowanie. Najpierw wyślij dwa requesty poniżej
+# (seed: kategoria "przelew" i "akcesoria", pochodzenie "kolumbia").
+#
+# Czerwone podkreślenie zmiennych z filtrem ?(...) to ograniczenie diagnostyki REST Client
+# — zapytania działają po wysłaniu productCategories i productOrigins.
+
+### Kategorie do formularza produktu (wyślij przed "Nowy produkt")
+# @name productCategories
+GET {{api}}/admin/categories
+
+### Pochodzenia do formularza produktu (wyślij przed "Nowy produkt")
+# @name productOrigins
+GET {{api}}/admin/origins
+
+### Lista: wszystkie statusy, ostatnio zmieniane pierwsze, 20 na stronę
+GET {{api}}/admin/products
+
+### Szkice kawy, od najtańszej (produkty bez aktywnego wariantu na końcu)
+GET {{api}}/admin/products?status=DRAFT&kind=COFFEE&sort=price_asc
+
+### Wyszukiwanie po nazwie, slugu lub SKU (bez rozróżniania wielkości liter)
+GET {{api}}/admin/products?q=eth-hambela
+
+### Nowy produkt z wariantami — jedna transakcja; slug z nazwy: "panama-boquete-geisha"
+# @name createProduct
+POST {{api}}/admin/products
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "kind": "COFFEE",
+  "name": "Panama Boquete Geisha",
+  "categoryId": "{{productCategories.response.body.$[?(@.slug=='przelew')].id}}",
+  "originId": "{{productOrigins.response.body.$[?(@.slug=='kolumbia')].id}}",
+  "roastLevel": "LIGHT",
+  "flavorNotes": ["Jaśmin", "bergamotka", "brzoskwinia"],
+  "brewMethods": ["POUR_OVER", "AEROPRESS"],
+  "variants": [
+    { "sku": "pan-geisha-100-z", "label": "100 g / ziarno", "price": 8900, "stock": 10 },
+    { "sku": "PAN-GEISHA-250-Z", "label": "250 g / ziarno", "price": 19900, "stock": 4 }
+  ]
+}
+
+### SKU zajęte przez inny produkt (409; errors wskazuje wariant; produkt nie powstaje)
+POST {{api}}/admin/products
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "kind": "ACCESSORY",
+  "name": "Testowy produkt",
+  "categoryId": "{{productCategories.response.body.$[?(@.slug=='akcesoria')].id}}",
+  "variants": [
+    { "sku": "NOWY-1", "label": "sztuka", "price": 1000, "stock": 1 },
+    { "sku": "PAN-GEISHA-100-Z", "label": "sztuka", "price": 1000, "stock": 1 }
+  ]
+}
+
+### Szczegóły do formularza: wszystkie warianty (także nieaktywne) i zdjęcia
+GET {{api}}/admin/products/{{createProduct.response.body.id}}
+
+### Edycja danych (zmiana nazwy nie zmienia slugu; pusty metaTitle zapisywany jako null)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "name": "Panama Boquete Geisha Washed",
+  "description": "Klasyczna geisha z Boquete.",
+  "metaTitle": ""
+}
+
+### Zmiana na akcesorium bez wyczyszczenia pól kawy (400: originId, roastLevel)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "kind": "ACCESSORY"
+}
+
+### Publikacja bez zdjęcia (400 "Nie można opublikować produktu", errors: images)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "status": "ACTIVE"
+}
+
+### Nowy wariant — odpowiedź to cały produkt z przeliczonym minPrice (tu 4900)
+# @name addVariant
+POST {{api}}/admin/products/{{createProduct.response.body.id}}/variants
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "sku": "PAN-GEISHA-50-Z",
+  "label": "50 g / ziarno",
+  "price": 4900,
+  "stock": 20
+}
+
+### Wyłączenie najtańszego wariantu (minPrice wraca do 8900); wariantów się nie usuwa
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}/variants/{{addVariant.response.body.$.variants[?(@.sku=='PAN-GEISHA-50-Z')].id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "isActive": false
+}
+
+### Archiwizacja (204; produkt i warianty zostają, status ARCHIVED; powtórka też 204)
+DELETE {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+
+### Przywrócenie z archiwum jako szkic
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "status": "DRAFT"
+}
+
+# ---------------------------------------------------------------- Admin: zdjęcia
+# Na produkcie z sekcji "Admin: produkty" (najpierw "Nowy produkt"). Upload to
+# multipart/form-data: pole "file" (JPEG/PNG/WebP do 5 MB, typ sprawdzany po zawartości)
+# i "alt" (wymagany). API zapisuje WebP o dłuższym boku najwyżej 1600 px pod losową nazwą
+# w MinIO (bucket tworzy `pnpm db:up`). Plik testowy (2400×1600) leży w repo; ścieżka po "<"
+# jest względna wobec tego pliku. Url w odpowiedzi otwiera się wprost w przeglądarce.
+
+### Upload zdjęcia (201; images[0]: 1600×1067, url http://localhost:9000/ziarnista-products/products/...)
+# @name uploadImage
+POST {{api}}/admin/products/{{createProduct.response.body.id}}/images
+Origin: {{admin}}
+Content-Type: multipart/form-data; boundary=ZiarnistaBoundary
+
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="alt"
+
+Opakowanie kawy, widok z przodu
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="file"; filename="kawa.jpg"
+Content-Type: image/jpeg
+
+< ../apps/api/test/fixtures/images/kawa.jpg
+--ZiarnistaBoundary--
+
+### Drugie zdjęcie — trafia na koniec (position 1)
+# @name uploadImage2
+POST {{api}}/admin/products/{{createProduct.response.body.id}}/images
+Origin: {{admin}}
+Content-Type: multipart/form-data; boundary=ZiarnistaBoundary
+
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="alt"
+
+Opakowanie kawy, widok z tyłu
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="file"; filename="kawa-tyl.jpg"
+Content-Type: image/jpeg
+
+< ../apps/api/test/fixtures/images/kawa.jpg
+--ZiarnistaBoundary--
+
+### Plik tekstowy udający JPEG (400: "Plik nie jest obrazem JPEG, PNG ani WebP")
+POST {{api}}/admin/products/{{createProduct.response.body.id}}/images
+Origin: {{admin}}
+Content-Type: multipart/form-data; boundary=ZiarnistaBoundary
+
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="alt"
+
+Podróbka
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="file"; filename="zdjecie.jpg"
+Content-Type: image/jpeg
+
+to nie jest zdjęcie
+--ZiarnistaBoundary--
+
+### Zmiana kolejności: drugie zdjęcie na początek (lista musi zawierać każde zdjęcie raz)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}/images/order
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "imageIds": [
+    "{{uploadImage2.response.body.$.images[1].id}}",
+    "{{uploadImage2.response.body.$.images[0].id}}"
+  ]
+}
+
+### Zmiana tekstu alternatywnego
+PATCH {{api}}/admin/images/{{uploadImage2.response.body.$.images[1].id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "alt": "Opakowanie kawy Panama Boquete Geisha, tył"
+}
+
+### Publikacja — teraz przechodzi (aktywny wariant + zdjęcie)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "status": "ACTIVE"
+}
+
+### Zdjęcia w publicznym katalogu (url, alt, width, height; w nowej kolejności)
+GET {{api}}/products/{{createProduct.response.body.slug}}
+
+### Usunięcie zdjęcia (204; znika z bazy i z MinIO, pozostałe zachowują kolejność)
+DELETE {{api}}/admin/images/{{uploadImage2.response.body.$.images[0].id}}
+Origin: {{admin}}
+
+### Usunięcie ostatniego zdjęcia opublikowanego produktu (400 — najpierw zmień status na szkic)
+DELETE {{api}}/admin/images/{{uploadImage2.response.body.$.images[1].id}}
+Origin: {{admin}}

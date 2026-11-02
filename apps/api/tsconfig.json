@@ -8,12 +8,12 @@
     "target": "ES2023",
     "lib": ["ES2023"],
     "outDir": "dist",
-    "types": ["node"],
+    "types": ["node", "multer"],
     // Required by NestJS dependency injection (constructor parameter types)
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     // DTO classes are filled in by NestJS, not by constructors
     "strictPropertyInitialization": false
   },
-  "include": ["src", "test", "prisma", "prisma.config.ts", "vitest.config.mts"]
+  "include": ["src", "test", "prisma", "scripts", "prisma.config.ts", "vitest.config.mts"]
 }

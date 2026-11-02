@@ -13,6 +13,7 @@ import {
   type ProductFixture,
 } from '../../test/catalog-fixtures';
 import { createTestApp, resetDatabase, type TestApp } from '../../test/test-app';
+import { testImageUrl } from '../../test/test-storage';
 
 // Visible (ACTIVE with an active variant), newest last:
 //   slug             category   origin    roast   brew methods           minPrice
@@ -83,7 +84,12 @@ describe('public catalog (/products, /categories)', () => {
         origin: { slug: 'etiopia', name: 'Etiopia' },
         flavorNotes: ['jaśmin', 'brzoskwinia'],
         brewMethods: ['POUR_OVER', 'AEROPRESS'],
-        image: { url: 'guji-front.webp', alt: 'Etiopia Guji 0' },
+        image: {
+          url: testImageUrl('guji-front.webp'),
+          alt: 'Etiopia Guji 0',
+          width: 1600,
+          height: 1067,
+        },
         inStock: true,
       });
       expect(kenia?.inStock).toBe(false);
@@ -304,7 +310,10 @@ describe('public catalog (/products, /categories)', () => {
         { price: 9900, inStock: false },
       ]);
       expect(body.variants[0]).not.toHaveProperty('stock');
-      expect(body.images.map((image) => image.url)).toEqual(['guji-front.webp', 'guji-back.webp']);
+      expect(body.images.map((image) => image.url)).toEqual([
+        testImageUrl('guji-front.webp'),
+        testImageUrl('guji-back.webp'),
+      ]);
     });
 
     it('returns a root category as a one-element path', async () => {

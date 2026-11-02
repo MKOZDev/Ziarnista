@@ -47,6 +47,27 @@ describe('productAttributesSchema', () => {
     expect(result.flavorNotes).toEqual(['czekolada', 'śliwka']);
   });
 
+  it('rejects an accessory with an origin or a roast level', () => {
+    const result = productAttributesSchema.safeParse({
+      ...accessory,
+      originId: ORIGIN_ID,
+      roastLevel: 'DARK',
+    });
+
+    expect(result.error?.issues.map((issue) => issue.path)).toEqual([['originId'], ['roastLevel']]);
+  });
+
+  it('drops repeated flavor notes and brew methods, keeping the first occurrence', () => {
+    const result = productAttributesSchema.parse({
+      ...coffee,
+      flavorNotes: ['Miód', 'jaśmin', 'miód '],
+      brewMethods: ['POUR_OVER', 'ESPRESSO', 'POUR_OVER'],
+    });
+
+    expect(result.flavorNotes).toEqual(['miód', 'jaśmin']);
+    expect(result.brewMethods).toEqual(['POUR_OVER', 'ESPRESSO']);
+  });
+
   it('rejects empty flavor notes and unknown brew methods', () => {
     expect(productAttributesSchema.safeParse({ ...coffee, flavorNotes: ['  '] }).success).toBe(
       false,
