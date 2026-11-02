@@ -414,3 +414,101 @@ Content-Type: application/json
 {
   "status": "DRAFT"
 }
+
+# ---------------------------------------------------------------- Admin: zdjęcia
+# Na produkcie z sekcji "Admin: produkty" (najpierw "Nowy produkt"). Upload to
+# multipart/form-data: pole "file" (JPEG/PNG/WebP do 5 MB, typ sprawdzany po zawartości)
+# i "alt" (wymagany). API zapisuje WebP o dłuższym boku najwyżej 1600 px pod losową nazwą
+# w MinIO (bucket tworzy `pnpm db:up`). Plik testowy (2400×1600) leży w repo; ścieżka po "<"
+# jest względna wobec tego pliku. Url w odpowiedzi otwiera się wprost w przeglądarce.
+
+### Upload zdjęcia (201; images[0]: 1600×1067, url http://localhost:9000/ziarnista-products/products/...)
+# @name uploadImage
+POST {{api}}/admin/products/{{createProduct.response.body.id}}/images
+Origin: {{admin}}
+Content-Type: multipart/form-data; boundary=ZiarnistaBoundary
+
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="alt"
+
+Opakowanie kawy, widok z przodu
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="file"; filename="kawa.jpg"
+Content-Type: image/jpeg
+
+< ../apps/api/test/fixtures/images/kawa.jpg
+--ZiarnistaBoundary--
+
+### Drugie zdjęcie — trafia na koniec (position 1)
+# @name uploadImage2
+POST {{api}}/admin/products/{{createProduct.response.body.id}}/images
+Origin: {{admin}}
+Content-Type: multipart/form-data; boundary=ZiarnistaBoundary
+
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="alt"
+
+Opakowanie kawy, widok z tyłu
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="file"; filename="kawa-tyl.jpg"
+Content-Type: image/jpeg
+
+< ../apps/api/test/fixtures/images/kawa.jpg
+--ZiarnistaBoundary--
+
+### Plik tekstowy udający JPEG (400: "Plik nie jest obrazem JPEG, PNG ani WebP")
+POST {{api}}/admin/products/{{createProduct.response.body.id}}/images
+Origin: {{admin}}
+Content-Type: multipart/form-data; boundary=ZiarnistaBoundary
+
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="alt"
+
+Podróbka
+--ZiarnistaBoundary
+Content-Disposition: form-data; name="file"; filename="zdjecie.jpg"
+Content-Type: image/jpeg
+
+to nie jest zdjęcie
+--ZiarnistaBoundary--
+
+### Zmiana kolejności: drugie zdjęcie na początek (lista musi zawierać każde zdjęcie raz)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}/images/order
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "imageIds": [
+    "{{uploadImage2.response.body.$.images[1].id}}",
+    "{{uploadImage2.response.body.$.images[0].id}}"
+  ]
+}
+
+### Zmiana tekstu alternatywnego
+PATCH {{api}}/admin/images/{{uploadImage2.response.body.$.images[1].id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "alt": "Opakowanie kawy Panama Boquete Geisha, tył"
+}
+
+### Publikacja — teraz przechodzi (aktywny wariant + zdjęcie)
+PATCH {{api}}/admin/products/{{createProduct.response.body.id}}
+Origin: {{admin}}
+Content-Type: application/json
+
+{
+  "status": "ACTIVE"
+}
+
+### Zdjęcia w publicznym katalogu (url, alt, width, height; w nowej kolejności)
+GET {{api}}/products/{{createProduct.response.body.slug}}
+
+### Usunięcie zdjęcia (204; znika z bazy i z MinIO, pozostałe zachowują kolejność)
+DELETE {{api}}/admin/images/{{uploadImage2.response.body.$.images[0].id}}
+Origin: {{admin}}
+
+### Usunięcie ostatniego zdjęcia opublikowanego produktu (400 — najpierw zmień status na szkic)
+DELETE {{api}}/admin/images/{{uploadImage2.response.body.$.images[1].id}}
+Origin: {{admin}}

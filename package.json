@@ -13,12 +13,13 @@
     "typecheck": "turbo run typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:up": "docker compose up -d --wait",
+    "db:up": "docker compose up -d --wait && pnpm --filter @ziarnista/api storage:init",
     "db:down": "docker compose down",
     "db:migrate": "pnpm --filter @ziarnista/api db:migrate",
     "db:seed": "pnpm --filter @ziarnista/api db:seed",
     "db:studio": "pnpm --filter @ziarnista/api db:studio",
-    "db:reset": "pnpm --filter @ziarnista/api db:reset"
+    "db:reset": "pnpm --filter @ziarnista/api db:reset",
+    "storage:orphans": "pnpm --filter @ziarnista/api storage:orphans"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

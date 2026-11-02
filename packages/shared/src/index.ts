@@ -5,4 +5,5 @@ export * from './schemas/catalog';
 export * from './schemas/health';
 export * from './schemas/pagination';
 export * from './schemas/product';
+export * from './schemas/product-images';
 export * from './slug';

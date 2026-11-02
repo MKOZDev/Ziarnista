@@ -43,7 +43,10 @@ export type ProductFixture = {
   brewMethods?: BrewMethod[];
   flavorNotes?: string[];
   description?: string;
-  /** Image urls; created with positions in reverse order, so tests see them sorted */
+  /**
+   * Image storage keys (rows only, no files in the bucket); created with positions in
+   * reverse order, so tests see them sorted. Size 1600×1067.
+   */
   images?: string[];
   createdAt?: Date;
 };
@@ -61,7 +64,13 @@ export async function createProduct(
     isActive: variant.isActive ?? true,
   }));
   const images = (product.images ?? [])
-    .map((url, position) => ({ url, alt: `${product.name} ${position}`, position }))
+    .map((storageKey, position) => ({
+      storageKey,
+      alt: `${product.name} ${position}`,
+      width: 1600,
+      height: 1067,
+      position,
+    }))
     .reverse();
   const kind = product.kind ?? 'COFFEE';
 

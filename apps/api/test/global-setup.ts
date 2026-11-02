@@ -2,9 +2,14 @@ import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
+import { createS3Client, ensurePublicBucket } from '../src/storage/s3-client';
 import { testDatabaseName, testDatabaseUrl } from './test-database';
+import { emptyBucket, testStorageEnv } from './test-storage';
 
-/** Runs once before the integration tests: creates the test database and applies migrations. */
+/**
+ * Runs once before the integration tests: creates the test database and applies
+ * migrations, then prepares the test bucket.
+ */
 export default async function setup(): Promise<void> {
   const url = new URL(testDatabaseUrl());
   const name = testDatabaseName(url);
@@ -36,4 +41,14 @@ export default async function setup(): Promise<void> {
     env: { ...process.env, DATABASE_URL: url.toString() },
     stdio: 'pipe',
   });
+
+  // The test bucket, like the database: created when missing, emptied before every run
+  const storage = testStorageEnv();
+  const s3 = createS3Client(storage);
+  try {
+    await ensurePublicBucket(s3, storage.S3_BUCKET);
+    await emptyBucket(s3, storage.S3_BUCKET);
+  } finally {
+    s3.destroy();
+  }
 }

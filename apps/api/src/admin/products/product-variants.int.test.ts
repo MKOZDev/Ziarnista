@@ -62,7 +62,7 @@ describe('admin product variants (/admin/products/:id/variants)', () => {
       originId,
       status,
       variants: prices.map((price) => ({ price })),
-      images: ['/guji.webp'],
+      images: ['guji.webp'],
     });
     const variants = await t.prisma.productVariant.findMany({
       where: { productId: id },

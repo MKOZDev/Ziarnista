@@ -24,8 +24,10 @@ export type ProductListRow = {
   brewMethods: BrewMethod[];
   originSlug: string | null;
   originName: string | null;
-  imageUrl: string | null;
+  imageKey: string | null;
   imageAlt: string | null;
+  imageWidth: number | null;
+  imageHeight: number | null;
   inStock: boolean;
 };
 
@@ -110,12 +112,13 @@ export function productPageSql(
            p.roast_level::text AS "roastLevel", p.flavor_notes AS "flavorNotes",
            p.brew_methods::text[] AS "brewMethods",
            o.slug AS "originSlug", o.name AS "originName",
-           img.url AS "imageUrl", img.alt AS "imageAlt",
+           img.storage_key AS "imageKey", img.alt AS "imageAlt",
+           img.width AS "imageWidth", img.height AS "imageHeight",
            stock.found IS NOT NULL AS "inStock"
     FROM products p
     LEFT JOIN origins o ON o.id = p.origin_id
     LEFT JOIN LATERAL (
-      SELECT i.url, i.alt FROM product_images i
+      SELECT i.storage_key, i.alt, i.width, i.height FROM product_images i
       WHERE i.product_id = p.id
       ORDER BY i.position, i.id
       LIMIT 1

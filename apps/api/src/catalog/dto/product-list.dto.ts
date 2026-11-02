@@ -14,11 +14,20 @@ import {
 import { NamedRefDto } from './named-ref.dto';
 
 export class ProductImageDto implements ProductImage {
-  @ApiProperty({ example: 'https://cdn.example.com/products/etiopia-guji-hambela/1.webp' })
+  @ApiProperty({
+    example: 'https://img.example.com/products/01a18e20-3f22-71a8-b1b8-aa6b159d9d37/0e9c.webp',
+    description: 'S3_PUBLIC_URL + klucz w storage; plik WebP, niezmienny (cache 1 rok)',
+  })
   url: string;
 
   @ApiProperty({ example: 'Opakowanie kawy Etiopia Guji Hambela' })
   alt: string;
+
+  @ApiProperty({ example: 1600, description: 'Szerokość w pikselach (dla next/image)' })
+  width: number;
+
+  @ApiProperty({ example: 1067, description: 'Wysokość w pikselach' })
+  height: number;
 }
 
 export class ProductListItemDto implements ProductListItem {

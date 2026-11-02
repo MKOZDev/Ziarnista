@@ -33,6 +33,10 @@ const ROUTES: ReadonlyArray<readonly ['get' | 'post' | 'patch' | 'delete', strin
   ['delete', `/api/v1/admin/products/${ID}`],
   ['post', `/api/v1/admin/products/${ID}/variants`],
   ['patch', `/api/v1/admin/products/${ID}/variants/${ID}`],
+  ['post', `/api/v1/admin/products/${ID}/images`],
+  ['patch', `/api/v1/admin/products/${ID}/images/order`],
+  ['patch', `/api/v1/admin/images/${ID}`],
+  ['delete', `/api/v1/admin/images/${ID}`],
 ];
 
 describe('admin routes access', () => {

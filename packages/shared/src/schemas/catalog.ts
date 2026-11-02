@@ -68,7 +68,13 @@ const countSchema = z.number().int().min(0);
 /** Reference to a dictionary entry shown by name and linked by slug (origin, category) */
 export const namedRefSchema = z.object({ slug: z.string(), name: z.string() });
 
-export const productImageSchema = z.object({ url: z.string(), alt: z.string() });
+/** width/height: pixel size of the stored WebP, so next/image can reserve space (no CLS) */
+export const productImageSchema = z.object({
+  url: z.string(),
+  alt: z.string(),
+  width: z.number().int(),
+  height: z.number().int(),
+});
 
 export const productListItemSchema = z.object({
   id: z.uuid(),

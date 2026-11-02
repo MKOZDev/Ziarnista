@@ -9,7 +9,9 @@ import { generateSessionToken, hashSessionToken } from '../src/auth/session-toke
 import { envSchema } from '../src/config/env.schema';
 import type { Role } from '../src/generated/prisma/enums';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { StorageService } from '../src/storage/storage.service';
 import { testDatabaseUrl } from './test-database';
+import { testStorageEnv } from './test-storage';
 
 /** Allowed by the default ALLOWED_ORIGINS; send it on every mutating request. */
 export const STOREFRONT_ORIGIN = 'http://localhost:3000';
@@ -19,27 +21,40 @@ export interface TestApp {
   app: INestApplication;
   server: Server;
   prisma: PrismaService;
+  storage: StorageService;
+}
+
+export interface TestAppOptions {
+  /** Replaces the S3 storage, e.g. with one that fails, to test the failure paths */
+  storage?: StorageService;
 }
 
 /**
- * The full AppModule on the test database. A fresh app per test also means a fresh
- * in-memory rate limit store, so tests do not throttle each other.
+ * The full AppModule on the test database and test bucket. A fresh app per test also means
+ * a fresh in-memory rate limit store, so tests do not throttle each other.
  */
-export async function createTestApp(): Promise<TestApp> {
+export async function createTestApp(options: TestAppOptions = {}): Promise<TestApp> {
   const env = envSchema.parse({
-    ...process.env,
+    ...testStorageEnv(),
     NODE_ENV: 'test',
     DATABASE_URL: testDatabaseUrl(),
     ALLOWED_ORIGINS: `${STOREFRONT_ORIGIN},${ADMIN_ORIGIN}`,
   });
-  const moduleRef = await Test.createTestingModule({
-    imports: [AppModule.forRoot(env)],
-  }).compile();
+  const builder = Test.createTestingModule({ imports: [AppModule.forRoot(env)] });
+  if (options.storage) {
+    builder.overrideProvider(StorageService).useValue(options.storage);
+  }
+  const moduleRef = await builder.compile();
 
   const app = moduleRef.createNestApplication();
   configureApp(app);
   await app.init();
-  return { app, server: app.getHttpServer() as Server, prisma: app.get(PrismaService) };
+  return {
+    app,
+    server: app.getHttpServer() as Server,
+    prisma: app.get(PrismaService),
+    storage: app.get(StorageService),
+  };
 }
 
 /**

@@ -14,6 +14,7 @@ import {
   type ProductStatus,
   type RoastLevel,
 } from '@ziarnista/shared';
+import { ProductImageDto } from '../../../catalog/dto/product-list.dto';
 
 export class AdminVariantDto implements AdminVariant {
   @ApiProperty({ format: 'uuid' })
@@ -35,15 +36,9 @@ export class AdminVariantDto implements AdminVariant {
   isActive: boolean;
 }
 
-export class AdminProductImageDto implements AdminProductImage {
+export class AdminProductImageDto extends ProductImageDto implements AdminProductImage {
   @ApiProperty({ format: 'uuid' })
   id: string;
-
-  @ApiProperty()
-  url: string;
-
-  @ApiProperty({ example: 'Opakowanie kawy Etiopia Guji Hambela' })
-  alt: string;
 
   @ApiProperty({ example: 0 })
   position: number;
@@ -117,14 +112,6 @@ class AdminProductCategoryDto {
   name: string;
 }
 
-class AdminProductThumbnailDto {
-  @ApiProperty()
-  url: string;
-
-  @ApiProperty()
-  alt: string;
-}
-
 export class AdminProductListItemDto implements AdminProductListItem {
   @ApiProperty({ format: 'uuid' })
   id: string;
@@ -156,8 +143,8 @@ export class AdminProductListItemDto implements AdminProductListItem {
   @ApiProperty({ description: 'Suma stanów aktywnych wariantów' })
   totalStock: number;
 
-  @ApiProperty({ type: AdminProductThumbnailDto, nullable: true, description: 'Pierwsze zdjęcie' })
-  image: AdminProductThumbnailDto | null;
+  @ApiProperty({ type: ProductImageDto, nullable: true, description: 'Pierwsze zdjęcie' })
+  image: ProductImageDto | null;
 
   @ApiProperty({ format: 'date-time' })
   updatedAt: string;

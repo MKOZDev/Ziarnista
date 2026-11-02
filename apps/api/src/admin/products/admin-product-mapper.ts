@@ -1,7 +1,14 @@
 import type { AdminProductDetail, AdminProductListItem } from '@ziarnista/shared';
 import type { Prisma } from '../../generated/prisma/client';
+import {
+  productImageOrder,
+  productImageSelect,
+  toProductImage,
+  type PublicUrl,
+} from '../../products/product-image';
 
-// Prisma rows → response bodies of /admin/products. Dates become ISO strings, as in JSON.
+// Prisma rows → response bodies of /admin/products. Dates become ISO strings, as in JSON;
+// image storage keys become public URLs.
 
 export const adminProductDetailSelect = {
   id: true,
@@ -26,16 +33,20 @@ export const adminProductDetailSelect = {
     select: { id: true, sku: true, label: true, price: true, stock: true, isActive: true },
   },
   images: {
-    orderBy: [{ position: 'asc' }, { id: 'asc' }],
-    select: { id: true, url: true, alt: true, position: true },
+    orderBy: productImageOrder,
+    select: { id: true, position: true, ...productImageSelect },
   },
 } satisfies Prisma.ProductSelect;
 
 type ProductDetailRow = Prisma.ProductGetPayload<{ select: typeof adminProductDetailSelect }>;
 
-export function toAdminProductDetail(row: ProductDetailRow): AdminProductDetail {
+export function toAdminProductDetail(
+  row: ProductDetailRow,
+  publicUrl: PublicUrl,
+): AdminProductDetail {
   return {
     ...row,
+    images: row.images.map((image) => toProductImage(image, publicUrl)),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -51,28 +62,23 @@ export const adminProductListSelect = {
   updatedAt: true,
   category: { select: { id: true, name: true } },
   variants: { select: { stock: true, isActive: true } },
-  images: {
-    orderBy: [{ position: 'asc' }, { id: 'asc' }],
-    take: 1,
-    select: { url: true, alt: true },
-  },
+  images: { orderBy: productImageOrder, take: 1, select: productImageSelect },
 } satisfies Prisma.ProductSelect;
 
 type ProductListRow = Prisma.ProductGetPayload<{ select: typeof adminProductListSelect }>;
 
-export function toAdminProductListItem({
-  variants,
-  images,
-  updatedAt,
-  ...row
-}: ProductListRow): AdminProductListItem {
+export function toAdminProductListItem(
+  { variants, images, updatedAt, ...row }: ProductListRow,
+  publicUrl: PublicUrl,
+): AdminProductListItem {
   const active = variants.filter((variant) => variant.isActive);
+  const image = images[0];
   return {
     ...row,
     variantCount: variants.length,
     activeVariantCount: active.length,
     totalStock: active.reduce((sum, variant) => sum + variant.stock, 0),
-    image: images[0] ?? null,
+    image: image ? toProductImage(image, publicUrl) : null,
     updatedAt: updatedAt.toISOString(),
   };
 }

@@ -14,6 +14,7 @@ import {
   resetDatabase,
   type TestApp,
 } from '../../../test/test-app';
+import { testImageUrl } from '../../../test/test-storage';
 import { PUBLISH_BLOCKED_MESSAGE } from './publication-rules';
 
 const URL = '/api/v1/admin/products';
@@ -198,7 +199,7 @@ describe('admin products (/admin/products)', () => {
         categoryId: przelewId,
         originId: etiopiaId,
         variants: [{ price: 5900 }, { price: 100, isActive: false }],
-        images: ['/a.webp', '/b.webp'],
+        images: ['a.webp', 'b.webp'],
       });
 
       const response = await get(`/${id}`).expect(200);
@@ -206,8 +207,8 @@ describe('admin products (/admin/products)', () => {
 
       expect(product.variants.map((variant) => variant.isActive)).toEqual([true, false]);
       expect(product.images.map((image) => [image.url, image.position])).toEqual([
-        ['/a.webp', 0],
-        ['/b.webp', 1],
+        [testImageUrl('a.webp'), 0],
+        [testImageUrl('b.webp'), 1],
       ]);
     });
 
@@ -302,7 +303,7 @@ describe('admin products (/admin/products)', () => {
           originId: etiopiaId,
           status: 'DRAFT',
           variants: [{ price: 5900 }],
-          images: ['/kenia.webp'],
+          images: ['kenia.webp'],
         });
 
         const response = await patch(id, { status: 'ACTIVE' }).expect(200);
@@ -355,7 +356,7 @@ describe('admin products (/admin/products)', () => {
           { price: 6900, stock: 3 },
           { price: 100, stock: 50, isActive: false },
         ],
-        images: ['/guji.webp'],
+        images: ['guji.webp'],
         createdAt: new Date(base),
       });
       await createProduct(t.prisma, {
@@ -402,7 +403,12 @@ describe('admin products (/admin/products)', () => {
           variantCount: 3,
           activeVariantCount: 2,
           totalStock: 10,
-          image: { url: '/guji.webp', alt: 'Etiopia Guji 0' },
+          image: {
+            url: testImageUrl('guji.webp'),
+            alt: 'Etiopia Guji 0',
+            width: 1600,
+            height: 1067,
+          },
           updatedAt: expect.any(String) as string,
         },
       );

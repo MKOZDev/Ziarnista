@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { idSchema, requireSlugSource } from './admin-catalog';
-import { PG_INT_MAX, slugSchema } from './catalog';
+import { PG_INT_MAX, productImageSchema, slugSchema } from './catalog';
 import { paginatedSchema, paginationQuerySchema } from './pagination';
 import {
   brewMethodSchema,
@@ -195,10 +195,8 @@ export const adminVariantSchema = z.object({
   isActive: z.boolean(),
 });
 
-export const adminProductImageSchema = z.object({
+export const adminProductImageSchema = productImageSchema.extend({
   id: z.uuid(),
-  url: z.string(),
-  alt: z.string(),
   position: z.number().int(),
 });
 
@@ -241,7 +239,7 @@ export const adminProductListItemSchema = z.object({
   /** Sum over active variants */
   totalStock: countSchema,
   /** First image by position */
-  image: z.object({ url: z.string(), alt: z.string() }).nullable(),
+  image: productImageSchema.nullable(),
   updatedAt: z.iso.datetime(),
 });
 

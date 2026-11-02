@@ -18,6 +18,8 @@ import type { Prisma } from '../../generated/prisma/client';
 import { ProductStatus } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { computeMinPrice } from '../../products/min-price';
+import type { PublicUrl } from '../../products/product-image';
+import { StorageService } from '../../storage/storage.service';
 import {
   adminProductDetailSelect,
   adminProductListSelect,
@@ -40,7 +42,14 @@ const ORDER_BY: Record<AdminProductSort, Prisma.ProductOrderByWithRelationInput[
 
 @Injectable()
 export class AdminProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly publicUrl: PublicUrl;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    storage: StorageService,
+  ) {
+    this.publicUrl = (key) => storage.publicUrl(key);
+  }
 
   /** 2–3 queries: the category tree (only with categoryId), then the page and the total */
   async list(query: AdminProductListQuery): Promise<AdminProductListResponse> {
@@ -56,7 +65,7 @@ export class AdminProductsService {
       this.prisma.product.count({ where }),
     ]);
     return {
-      items: rows.map(toAdminProductListItem),
+      items: rows.map((row) => toAdminProductListItem(row, this.publicUrl)),
       page: query.page,
       pageSize: query.pageSize,
       total,
@@ -72,7 +81,7 @@ export class AdminProductsService {
     if (!row) {
       throw new NotFoundException(PRODUCT_NOT_FOUND_MESSAGE);
     }
-    return toAdminProductDetail(row);
+    return toAdminProductDetail(row, this.publicUrl);
   }
 
   /**

@@ -25,6 +25,21 @@ export const envSchema = z.object({
   // $proxy_add_x_forwarded_for); Express takes the rightmost entry, so a value forged by the
   // client is ignored. Without that proxy the header is client-controlled.
   TRUST_PROXY: z.string().default('loopback'),
+  // S3-compatible storage for product images: MinIO locally, Cloudflare R2 in production
+  // (R2: endpoint https://<account>.r2.cloudflarestorage.com, region "auto").
+  S3_ENDPOINT: z.url({ protocol: /^https?$/ }),
+  S3_REGION: z.string().min(1).default('us-east-1'),
+  S3_ACCESS_KEY_ID: z.string().min(1),
+  S3_SECRET_ACCESS_KEY: z.string().min(1),
+  S3_BUCKET: z
+    .string()
+    .regex(/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/, 'Nieprawidłowa nazwa bucketu S3'),
+  // Base of public image URLs: <S3_PUBLIC_URL>/<key>. Defaults to the bucket on the endpoint
+  // (MinIO, path style); in production the bucket's public domain, e.g. https://img.example.com
+  S3_PUBLIC_URL: z
+    .url({ protocol: /^https?$/ })
+    .transform((url) => url.replace(/\/+$/, ''))
+    .optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
