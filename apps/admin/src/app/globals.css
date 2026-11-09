@@ -3,6 +3,7 @@
 @import 'shadcn/tailwind.css';
 @import '@ziarnista/ui/styles/tokens.css';
 @import '@ziarnista/ui/styles/theme.css';
+@import '@ziarnista/ui/styles/sources.css';
 
 @layer base {
   body {

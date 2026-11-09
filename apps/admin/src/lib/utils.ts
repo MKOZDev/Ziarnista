@@ -1,1 +1,1 @@
-export { cn } from 'cn';
+export { cn } from '@ziarnista/ui/cn';

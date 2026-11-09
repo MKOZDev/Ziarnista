@@ -141,7 +141,7 @@ Kolumna „W projekcie” opisuje tylko to, co widać w pliku. Braki są w sekcj
 | ----------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------- |
 | Button      | primary, secondary (obrys), ghost/tekst, danger (pełny), danger-outline (masowe „Usuń”), z ikoną | hover, disabled, ładowanie („Logowanie…”) |
 | IconButton  | z obrysem (motyw, paginacja), bez obrysu (wyloguj, usuń wariant), na zdjęciu                     | hover, hover-danger, disabled             |
-| Link        | w tekście, „wstecz” z chevronem                                                                  | hover                                     |
+| TextLink    | w tekście, „wstecz” z chevronem                                                                  | hover                                     |
 | Input       | tekst, e-mail, mono (SKU), liczbowy do prawej, wyszukiwarka z ikoną, hasło z „Pokaż”             | focus, błąd (czerwony obrys)              |
 | InputGroup  | prefiks (`ziarnista.pl/produkt/`)                                                                | brak focusu                               |
 | Textarea    | `rows` 2–4, zmiana wysokości                                                                     | focus                                     |
@@ -281,7 +281,9 @@ packages/ui/
     styles/tokens.css            # zmienne CSS, :root i .dark
     styles/theme.css             # motyw Tailwinda: mapowanie kolorów, stałe skale, style bazowe
     styles/storefront-theme.css  # nadpisania marki sklepu
+    styles/sources.css           # @source: gdzie Tailwind ma szukać klas komponentów
     styles/contrast.test.ts      # WCAG: oba motywy panelu i sklep
+    lib/cn.ts             # cn znający własne skale z theme.css
     primitives/           # button.tsx, input.tsx, ...
     composites/           # data-table/, modal/, combobox/, ...
     sections/             # sidebar.tsx, page-header.tsx, ...
@@ -299,8 +301,9 @@ packages/ui/
 
 Dwie warstwy: `tokens.css` (wartości) i `theme.css` (`@theme inline`, czyli klasy typu
 `bg-primary`). Motyw sklepu leży w tej samej paczce, żeby jeden test kontrastu obejmował wszystkie
-motywy bez zależności paczki od aplikacji. `@source` i `transpilePackages` dochodzą w kroku 3, gdy
-pojawi się pierwszy komponent.
+motywy bez zależności paczki od aplikacji. Aplikacja renderująca komponenty dodaje
+`transpilePackages: ['@ziarnista/ui']` i import `@ziarnista/ui/styles/sources.css`. Na razie robi to
+tylko panel, sklep dołączy przy pierwszym użytym komponencie.
 
 ```css
 /* apps/storefront/src/app/globals.css */
@@ -344,9 +347,9 @@ bo tam ręczna implementacja nic by nie wniosła, a podniosła ryzyko”.
 | Combobox                                       | **ręcznie** + Radix Popover     | Radix go nie ma (sprawdzone w zainstalowanej wersji 1.8.1)                  |
 | DataTable                                      | **ręcznie**, bez TanStack Table | Patrz 5.5                                                                   |
 
-Paczki `radix-ui`, `class-variance-authority`, `cn`, `lucide-react`, `tw-animate-css` są już
-w `apps/admin` i przenoszą się do `packages/ui`. To nie są nowe zależności. Istniejące
-`apps/admin/src/components/ui/{badge,card}.tsx` zostaną zastąpione wersjami z `packages/ui`.
+Paczki `radix-ui`, `class-variance-authority`, `cn` i `lucide-react` przeniosły się z `apps/admin`
+do `packages/ui` (`lucide-react` jest też nadal w panelu, bo używa go bezpośrednio). `tw-animate-css`
+zostaje w panelu do kroku 5, bo potrzebuje go dopiero pierwszy animowany komponent Radixa.
 
 ### 5.4 Storybook i testy
 
@@ -410,7 +413,7 @@ BulkActionBar, BarChart, MoneyInput (złotówki w polu, grosze w danych).
 
 **C. Generuję, a Ty przeglądasz wyrywkowo.** Powtarzalna praca na podstawie tokenów.
 
-Button, IconButton, Link, Input, InputGroup, Textarea, Select, Checkbox, Badge, CountBadge,
+Button, IconButton, TextLink, Input, InputGroup, Textarea, Select, Checkbox, Badge, CountBadge,
 ToggleChip, Avatar, Thumbnail, Card, Skeleton, ProgressBar, Alert, Tabs, SegmentedControl, Toast,
 Tooltip, StatCard, SummaryList, Timeline, AppShell, Sidebar, Topbar, PageHeader, FormSection,
 EmptyState, ErrorState, ForbiddenState, LoadingState, AuthCard.
@@ -420,21 +423,21 @@ EmptyState, ErrorState, ForbiddenState, LoadingState, AuthCard.
 Każdy krok to jedna spójna zmiana z testami. Komponenty z każdego kroku opierają się na
 wcześniejszych.
 
-| Krok | Zakres                                                                                          | Autor           |
-| ---- | ----------------------------------------------------------------------------------------------- | --------------- |
-| 1    | Szkielet paczki, tokeny, motyw, test kontrastu, podłączenie panelu i sklepu                     | Claude          |
-| 2    | Storybook, axe, Vitest w przeglądarce, integracja z `pnpm test` i Turbo                         | Claude          |
-| 3    | Button, IconButton, Link, Badge, Skeleton, Card, Avatar, Alert                                  | Claude          |
-| 4    | Field, Input, InputGroup, Textarea, Select, Checkbox, MoneyInput                                | Claude          |
-| 5    | ToggleChip, SegmentedControl, Tabs, Tooltip, Pagination                                         | Claude          |
-| 6    | **Modal** + ConfirmDialog na jego bazie                                                         | **Ty**          |
-| 7    | Toast                                                                                           | Claude          |
-| 8    | **Combobox**                                                                                    | **Ty**          |
-| 9    | TagInput                                                                                        | Claude          |
-| 10   | **DataTable** + BulkActionBar                                                                   | **Ty** / Claude |
-| 11   | ImageUploader                                                                                   | Claude          |
-| 12   | EmptyState, ErrorState, ForbiddenState, LoadingState, StatCard, BarChart, SummaryList, Timeline | Claude          |
-| 13   | AppShell, Sidebar, Topbar, PageHeader, FormSection, AuthCard                                    | Claude          |
+| Krok | Zakres                                                                                                       | Autor           |
+| ---- | ------------------------------------------------------------------------------------------------------------ | --------------- |
+| 1    | Szkielet paczki, tokeny, motyw, test kontrastu, podłączenie panelu i sklepu                                  | Claude          |
+| 2    | Storybook, axe, Vitest w przeglądarce, integracja z `pnpm test` i Turbo                                      | Claude          |
+| 3    | Button, IconButton, TextLink, Badge, Skeleton, Card, Avatar, Alert                                           | Claude          |
+| 4    | Field, Input, InputGroup, Textarea, Select, Checkbox, MoneyInput                                             | Claude          |
+| 5    | CountBadge, ToggleChip, SegmentedControl, Tabs, Tooltip, Pagination                                          | Claude          |
+| 6    | **Modal** + ConfirmDialog na jego bazie                                                                      | **Ty**          |
+| 7    | Toast                                                                                                        | Claude          |
+| 8    | **Combobox**                                                                                                 | **Ty**          |
+| 9    | TagInput                                                                                                     | Claude          |
+| 10   | **DataTable** + Thumbnail, BulkActionBar                                                                     | **Ty** / Claude |
+| 11   | ImageUploader                                                                                                | Claude          |
+| 12   | EmptyState, ErrorState, ForbiddenState, LoadingState, StatCard, BarChart, ProgressBar, SummaryList, Timeline | Claude          |
+| 13   | AppShell, Sidebar, Topbar, PageHeader, FormSection, AuthCard                                                 | Claude          |
 
 Osobne kroki poza design systemem: filtr `lowStock` w API (przed ekranem listy produktów) oraz
 responsywność panelu poniżej 1024 px (na koniec Fazy 3).
