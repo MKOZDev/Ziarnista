@@ -11,10 +11,10 @@ const LABELS: Record<ApiStatus, string> = {
 };
 
 const DOT_CLASSES: Record<ApiStatus, string> = {
-  loading: 'bg-espresso/30 animate-pulse',
+  loading: 'bg-foreground/30 animate-pulse',
   ok: 'bg-sage',
-  'database-down': 'bg-terracotta',
-  unreachable: 'bg-terracotta',
+  'database-down': 'bg-primary',
+  unreachable: 'bg-primary',
 };
 
 export function ApiStatusBadge() {
@@ -31,7 +31,7 @@ export function ApiStatusBadge() {
   return (
     <p
       role="status"
-      className="inline-flex items-center gap-2 rounded-full border border-espresso/15 px-4 py-1.5 text-sm"
+      className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-4 py-1.5 text-sm"
     >
       <span aria-hidden className={`size-2 rounded-full ${DOT_CLASSES[status]}`} />
       {LABELS[status]}

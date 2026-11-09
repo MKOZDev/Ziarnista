@@ -1,0 +1,8 @@
+/*
+ * Tells Tailwind where the component classes are, for apps that render components from this package.
+ * Kept here so the paths stay inside the package. Paths are relative to this file.
+ */
+
+@source '..';
+@source not '../**/*.stories.tsx';
+@source not '../**/*.test.ts';

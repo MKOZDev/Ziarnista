@@ -1,5 +1,5 @@
 import { ApiStatusBadge } from '@/components/api-status-badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ziarnista/ui/card';
 
 export default function DashboardPage() {
   return (
@@ -11,7 +11,7 @@ export default function DashboardPage() {
             Szkielet panelu. Logowanie i moduły pojawią się w fazie 3.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-between gap-4 text-sm">
+        <CardContent className="flex items-center justify-between gap-4">
           <span className="text-muted-foreground">Status API</span>
           <ApiStatusBadge />
         </CardContent>

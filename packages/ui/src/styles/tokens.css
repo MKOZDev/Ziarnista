@@ -1,0 +1,105 @@
+/*
+ * Design tokens: values that change per theme.
+ * Names follow shadcn/ui, extended with what it does not define (-hover, -soft, -ink, status colors).
+ * Contrast of every text and control pair is enforced by contrast.test.ts.
+ */
+
+:root {
+  color-scheme: light;
+
+  --background: #f8f6f3;
+  --foreground: #2b1d14;
+  --card: #ffffff;
+  --card-foreground: #2b1d14;
+  --popover: #ffffff;
+  --popover-foreground: #2b1d14;
+
+  /* Subtle surfaces: table headers, hover backgrounds */
+  --muted: #f3efea;
+  --muted-foreground: #6e6259;
+  --secondary: #f3efea;
+  --secondary-foreground: #2b1d14;
+  --accent: #f3efea;
+  --accent-foreground: #2b1d14;
+
+  /* Decorative outlines */
+  --border: #e6e0d8;
+  --border-strong: #d3cbc0;
+  /* Form control outlines and focus indicator: must reach 3:1 (WCAG 1.4.11) */
+  --input: #8a7f74;
+  --ring: #bc4d36;
+
+  --primary: #bc4d36;
+  --primary-hover: #b04530;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f7e7e2;
+  --primary-ink: #a8432d;
+
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+  --destructive-soft: #fbe7e5;
+
+  --success: #2a7247;
+  --success-soft: #e3f1e8;
+  --warning: #94600a;
+  --warning-soft: #faefd8;
+  --info: #2d5f9a;
+  --info-soft: #e4edf8;
+  --violet: #664a98;
+  --violet-soft: #eee8f7;
+  --neutral-soft: #eee9e3;
+
+  --overlay: rgba(43, 29, 20, 0.35);
+  --elevation-xs: 0 1px 2px rgba(43, 29, 20, 0.05);
+  --elevation-lg: 0 8px 24px rgba(0, 0, 0, 0.18);
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: #161210;
+  --foreground: #f1ebe5;
+  --card: #1e1916;
+  --card-foreground: #f1ebe5;
+  --popover: #1e1916;
+  --popover-foreground: #f1ebe5;
+
+  --muted: #28211d;
+  --muted-foreground: #a99c91;
+  --secondary: #28211d;
+  --secondary-foreground: #f1ebe5;
+  --accent: #28211d;
+  --accent-foreground: #f1ebe5;
+
+  --border: #362d28;
+  --border-strong: #4a3f38;
+  --input: #8a7d73;
+  --ring: #d8674e;
+
+  --primary: #d8674e;
+  --primary-hover: #e57b62;
+  /* White on the dark theme primary is only 3.52:1, so the label is dark here */
+  --primary-foreground: #161210;
+  --primary-soft: #3a231c;
+  --primary-ink: #ee9a85;
+
+  --destructive: #f09a92;
+  --destructive-foreground: #1e1916;
+  --destructive-soft: #3c1e1b;
+
+  --success: #7fcb9b;
+  --success-soft: #1d3227;
+  --warning: #e7b862;
+  --warning-soft: #382d17;
+  --info: #8db5e8;
+  --info-soft: #1c2939;
+  --violet: #b9a2e3;
+  --violet-soft: #2a2238;
+  --neutral-soft: #2c2520;
+
+  --overlay: rgba(0, 0, 0, 0.55);
+  --elevation-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+}

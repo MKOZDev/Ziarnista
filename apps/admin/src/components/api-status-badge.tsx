@@ -1,19 +1,19 @@
 'use client';
 
 import { CircleCheck, CircleX, LoaderCircle, TriangleAlert, type LucideIcon } from 'lucide-react';
-import { useEffect, useState, type ComponentProps } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react';
+import { Badge, type BadgeProps } from '@ziarnista/ui/badge';
 import { fetchApiStatus, type ApiStatus } from '@/lib/api-status';
 
 type StatusView = {
   label: string;
   icon: LucideIcon;
-  variant: ComponentProps<typeof Badge>['variant'];
+  variant: BadgeProps['variant'];
 };
 
 const VIEWS: Record<ApiStatus, StatusView> = {
-  loading: { label: 'Sprawdzam…', icon: LoaderCircle, variant: 'outline' },
-  ok: { label: 'API działa', icon: CircleCheck, variant: 'secondary' },
+  loading: { label: 'Sprawdzam…', icon: LoaderCircle, variant: 'neutral' },
+  ok: { label: 'API działa', icon: CircleCheck, variant: 'success' },
   'database-down': {
     label: 'Baza danych niedostępna',
     icon: TriangleAlert,
@@ -35,7 +35,7 @@ export function ApiStatusBadge() {
 
   const { label, icon: Icon, variant } = VIEWS[status];
   return (
-    <Badge role="status" variant={variant}>
+    <Badge role="status" variant={variant} dot={false}>
       <Icon aria-hidden className={status === 'loading' ? 'animate-spin' : undefined} />
       {label}
     </Badge>

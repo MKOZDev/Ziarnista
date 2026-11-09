@@ -11,6 +11,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
+    "storybook": "pnpm --filter @ziarnista/ui storybook",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d --wait && pnpm --filter @ziarnista/api storage:init",

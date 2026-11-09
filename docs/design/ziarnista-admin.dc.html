@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="light"]{--bg:#F8F6F3;--surface:#FFFFFF;--surface2:#F3EFEA;--border:#E6E0D8;--border-strong:#D3CBC0;--text:#2B1D14;--muted:#6E6259;--accent:#C8553D;--accent-hover:#B04530;--accent-soft:#F7E7E2;--accent-ink:#A8432D;--ok:#2F7D4F;--ok-soft:#E3F1E8;--warn:#94600A;--warn-soft:#FAEFD8;--info:#2D5F9A;--info-soft:#E4EDF8;--violet:#664A98;--violet-soft:#EEE8F7;--danger:#B3261E;--danger-soft:#FBE7E5;--neutral-soft:#EEE9E3;--shadow:0 1px 2px rgba(43,29,20,.05);--overlay:rgba(43,29,20,.35)}
+[data-theme="dark"]{--bg:#161210;--surface:#1E1916;--surface2:#28211D;--border:#362D28;--border-strong:#4A3F38;--text:#F1EBE5;--muted:#A99C91;--accent:#D8674E;--accent-hover:#E57B62;--accent-soft:#3A231C;--accent-ink:#EE9A85;--ok:#7FCB9B;--ok-soft:#1D3227;--warn:#E7B862;--warn-soft:#382D17;--info:#8DB5E8;--info-soft:#1C2939;--violet:#B9A2E3;--violet-soft:#2A2238;--danger:#F09A92;--danger-soft:#3C1E1B;--neutral-soft:#2C2520;--shadow:0 1px 2px rgba(0,0,0,.3);--overlay:rgba(0,0,0,.55)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+input,select,textarea,button{font:inherit;color:inherit}
+a{color:var(--accent-ink);text-decoration:none}
+a:hover{color:var(--accent);text-decoration:underline}
+@keyframes zpulse{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes zin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45">
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="01 Logowanie" style="min-height:100vh;display:grid;place-items:center;padding:24px;position:relative">
+  <button onClick="{{ toggleTheme }}" title="Zmień motyw" style="position:absolute;top:20px;right:20px;width:36px;height:36px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--muted)">
+    <sc-if value="{{ isDark }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></sc-if>
+    <sc-if value="{{ isLight }}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></sc-if>
+  </button>
+  <div style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="font-family:Fraunces,serif;font-size:36px;font-weight:600;letter-spacing:-.01em;color:var(--text)">Ziarnista</div>
+      <div style="font-size:13px;color:var(--muted)">Panel administracyjny</div>
+    </div>
+    <form onSubmit="{{ onLogin }}" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:18px;box-shadow:var(--shadow)">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <h1 style="margin:0;font-size:20px;font-weight:600">Zaloguj się</h1>
+        <p style="margin:0;color:var(--muted);font-size:13.5px">Użyj konta administratora sklepu.</p>
+      </div>
+      <sc-if value="{{ login.error }}" hint-placeholder-val="{{ false }}">
+        <div role="alert" style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;background:var(--danger-soft);color:var(--danger);font-size:13px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+          <span>{{ login.error }}</span>
+        </div>
+      </sc-if>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">E-mail
+        <input type="email" value="{{ login.email }}" onChange="{{ onLoginEmail }}" placeholder="imie@ziarnista.pl" style="height:40px;padding:0 12px;border:1px solid {{ loginEmailBorder }};border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+        <sc-if value="{{ login.emailErr }}" hint-placeholder-val="{{ false }}"><span style="color:var(--danger);font-weight:400;font-size:12.5px">{{ login.emailErr }}</span></sc-if>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">
+        <span style="display:flex;justify-content:space-between">Hasło <a href="#" onClick="{{ noop }}" style="font-weight:400;font-size:12.5px">Nie pamiętasz hasła?</a></span>
+        <div style="position:relative;display:flex">
+          <input type="{{ pwType }}" value="{{ login.password }}" onChange="{{ onLoginPw }}" placeholder="••••••••" style="flex:1;height:40px;padding:0 64px 0 12px;border:1px solid {{ loginPwBorder }};border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+          <button type="button" onClick="{{ togglePw }}" style="position:absolute;right:6px;top:6px;height:28px;padding:0 8px;border:0;background:transparent;color:var(--muted);font-size:12.5px;cursor:pointer;border-radius:6px" style-hover="background:var(--surface2)">{{ pwToggleLabel }}</button>
+        </div>
+        <sc-if value="{{ login.pwErr }}" hint-placeholder-val="{{ false }}"><span style="color:var(--danger);font-weight:400;font-size:12.5px">{{ login.pwErr }}</span></sc-if>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" checked="{{ login.remember }}" onChange="{{ onRemember }}" style="width:16px;height:16px;accent-color:var(--accent);margin:0">Zapamiętaj mnie na tym urządzeniu
+      </label>
+      <button type="submit" disabled="{{ login.loading }}" style="height:42px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer" style-hover="background:var(--accent-hover)">{{ loginBtn }}</button>
+    </form>
+    <p style="margin:0;text-align:center;font-size:12.5px;color:var(--muted)">Prototyp: hasło „blad123” pokazuje błąd logowania.</p>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;min-height:100vh">
+  <aside style="width:232px;flex:none;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;position:sticky;top:0;height:100vh">
+    <div style="height:60px;display:flex;align-items:baseline;gap:8px;padding:0 20px;border-bottom:1px solid var(--border);padding-top:16px">
+      <span style="font-family:Fraunces,serif;font-size:23px;font-weight:600;letter-spacing:-.01em">Ziarnista</span>
+      <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Admin</span>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:2px;padding:14px 10px">
+      <button onClick="{{ goDash }}" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border:0;border-radius:8px;cursor:pointer;text-align:left;font-size:14px;font-weight:500;background:{{ nav.dash.bg }};color:{{ nav.dash.fg }}" style-hover="background:var(--surface2)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>Dashboard</button>
+      <button onClick="{{ goProducts }}" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border:0;border-radius:8px;cursor:pointer;text-align:left;font-size:14px;font-weight:500;background:{{ nav.prod.bg }};color:{{ nav.prod.fg }}" style-hover="background:var(--surface2)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg>Produkty<span style="margin-left:auto;font-size:12px;color:var(--muted)">{{ productCount }}</span></button>
+      <button onClick="{{ goOrders }}" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border:0;border-radius:8px;cursor:pointer;text-align:left;font-size:14px;font-weight:500;background:{{ nav.ord.bg }};color:{{ nav.ord.fg }}" style-hover="background:var(--surface2)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"></path><path d="M9 7h6M9 11h6M9 15h4"></path></svg>Zamówienia<sc-if value="{{ newOrdersCount }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:11.5px;font-weight:600;display:grid;place-items:center">{{ newOrdersCount }}</span></sc-if></button>
+    </nav>
+    <div style="margin-top:auto;padding:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <div style="width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center;font-size:12.5px;font-weight:600">AK</div>
+      <div style="display:flex;flex-direction:column;min-width:0;flex:1">
+        <span style="font-size:13px;font-weight:600">Anna Kowalczyk</span>
+        <span style="font-size:12px;color:var(--muted)">Administrator</span>
+      </div>
+      <button onClick="{{ logout }}" title="Wyloguj" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer" style-hover="background:var(--surface2);color:var(--text)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg></button>
+    </div>
+  </aside>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="height:60px;display:flex;align-items:center;gap:12px;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:5">
+      <div style="position:relative;flex:1;max-width:380px;display:flex">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="position:absolute;left:11px;top:10px;color:var(--muted)"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+        <input value="{{ gq }}" onChange="{{ onGq }}" onKeyDown="{{ onGqKey }}" placeholder="Szukaj produktu lub zamówienia (Enter)" style="flex:1;height:36px;padding:0 12px 0 34px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:13.5px;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)">Podgląd stanu
+          <select value="{{ demo }}" onChange="{{ onDemo }}" style="height:32px;padding:0 8px;border:1px dashed var(--border-strong);border-radius:8px;background:var(--surface);font-size:13px;cursor:pointer">
+            <option value="data">Dane</option><option value="empty">Pusty</option><option value="loading">Ładowanie</option><option value="error">Błąd</option><option value="forbidden">Brak uprawnień</option>
+          </select>
+        </label>
+        <button onClick="{{ toggleTheme }}" title="Zmień motyw" style="width:36px;height:36px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--muted)" style-hover="color:var(--text);background:var(--surface2)">
+          <sc-if value="{{ isDark }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></sc-if>
+          <sc-if value="{{ isLight }}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></sc-if>
+        </button>
+      </div>
+    </header>
+
+    <main data-screen-label="{{ screenLabel }}" style="flex:1;width:100%;max-width:1320px;margin:0 auto;padding:24px 28px 56px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-if value="{{ hasBack }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ onBack }}" style="align-self:flex-start;display:flex;align-items:center;gap:4px;padding:0;border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer" style-hover="color:var(--text)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>{{ backLabel }}</button>
+        </sc-if>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap">
+            <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em">{{ pageTitle }}</h1>
+            <sc-if value="{{ hdrBadge.show }}" hint-placeholder-val="{{ false }}">
+              <span style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;letter-spacing:.02em;background:{{ hdrBadge.bg }};color:{{ hdrBadge.fg }}"><span style="width:6px;height:6px;border-radius:50%;background:currentColor"></span>{{ hdrBadge.label }}</span>
+            </sc-if>
+            <sc-if value="{{ dirtyShow }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:var(--warn)">Niezapisane zmiany</span></sc-if>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <sc-if value="{{ hdr.dash }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;padding:3px;border-radius:9px;background:var(--surface2);gap:2px">
+                <sc-for list="{{ periodOpts }}" as="p" hint-placeholder-count="3">
+                  <button onClick="{{ p.onClick }}" style="height:30px;padding:0 12px;border:0;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;background:{{ p.bg }};color:{{ p.fg }};box-shadow:{{ p.sh }}">{{ p.label }}</button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hdr.products }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ newProduct }}" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;font-size:13.5px;cursor:pointer" style-hover="background:var(--accent-hover)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Dodaj produkt</button>
+            </sc-if>
+            <sc-if value="{{ hdr.form }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ onBack }}" style="height:36px;padding:0 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-weight:500;font-size:13.5px;cursor:pointer" style-hover="background:var(--surface2)">Anuluj</button>
+              <button onClick="{{ saveProduct }}" style="height:36px;padding:0 16px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;font-size:13.5px;cursor:pointer" style-hover="background:var(--accent-hover)">Zapisz produkt</button>
+            </sc-if>
+          </div>
+        </div>
+        <sc-if value="{{ pageSub }}" hint-placeholder-val="{{ false }}"><p style="margin:0;color:var(--muted);font-size:13.5px">{{ pageSub }}</p></sc-if>
+      </div>
+
+      <sc-if value="{{ stLoading }}" hint-placeholder-val="{{ false }}">
+        <div aria-busy="true" style="display:flex;flex-direction:column;gap:16px">
+          <sc-if value="{{ isDash }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+              <div style="height:112px;border-radius:12px;background:var(--surface2);animation:zpulse 1.4s ease-in-out infinite"></div>
+              <div style="height:112px;border-radius:12px;background:var(--surface2);animation:zpulse 1.4s ease-in-out infinite"></div>
+              <div style="height:112px;border-radius:12px;background:var(--surface2);animation:zpulse 1.4s ease-in-out infinite"></div>
+            </div>
+          </sc-if>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px">
+            <div style="height:14px;width:180px;border-radius:6px;background:var(--surface2);animation:zpulse 1.4s ease-in-out infinite"></div>
+            <sc-for list="{{ skeletonRows }}" as="s" hint-placeholder-count="6">
+              <div style="display:flex;gap:14px;align-items:center">
+                <div style="width:40px;height:40px;border-radius:8px;background:var(--surface2);animation:zpulse 1.4s ease-in-out infinite"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:7px"><div style="height:11px;width:{{ s.w }}%;border-radius:5px;background:var(--surface2);animation:zpulse 1.4s ease-in-out infinite"></div><div style="height:9px;width:22%;border-radius:5px;background:var(--surface2);animation:zpulse 1.4s ease-in-out infinite"></div></div>
+                <div style="width:80px;height:20px;border-radius:999px;background:var(--surface2);animation:zpulse 1.4s ease-in-out infinite"></div>
+              </div>
+            </sc-for>
+          </div>
+          <span style="font-size:12.5px;color:var(--muted)">Wczytywanie danych…</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ stError }}" hint-placeholder-val="{{ false }}">
+        <div role="alert" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+          <div style="width:48px;height:48px;border-radius:12px;background:var(--danger-soft);color:var(--danger);display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg></div>
+          <h2 style="margin:0;font-size:16px;font-weight:600">{{ errorTitle }}</h2>
+          <p style="margin:0;max-width:420px;color:var(--muted);font-size:13.5px;text-wrap:pretty">Serwer nie odpowiedział w wymaganym czasie. Twoje dane są bezpieczne. Spróbuj ponownie za chwilę.</p>
+          <code style="font-size:12px;color:var(--muted);background:var(--surface2);padding:3px 8px;border-radius:6px">HTTP 503 · req_7f3a91c2</code>
+          <button onClick="{{ retry }}" style="margin-top:6px;height:36px;padding:0 16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-weight:500;cursor:pointer" style-hover="background:var(--surface2)">Spróbuj ponownie</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ stForbidden }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+          <div style="width:48px;height:48px;border-radius:12px;background:var(--surface2);color:var(--muted);display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></div>
+          <h2 style="margin:0;font-size:16px;font-weight:600">Brak uprawnień</h2>
+          <p style="margin:0;max-width:440px;color:var(--muted);font-size:13.5px;text-wrap:pretty">{{ forbiddenText }}</p>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <button onClick="{{ goDash }}" style="height:36px;padding:0 16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-weight:500;cursor:pointer" style-hover="background:var(--surface2)">Wróć do dashboardu</button>
+            <button onClick="{{ requestAccess }}" style="height:36px;padding:0 16px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer" style-hover="background:var(--accent-hover)">Poproś o dostęp</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ stEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px dashed var(--border-strong);border-radius:12px;padding:56px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+          <div style="width:48px;height:48px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.5 5.1L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z"></path></svg></div>
+          <h2 style="margin:0;font-size:16px;font-weight:600">{{ empty.title }}</h2>
+          <p style="margin:0;max-width:420px;color:var(--muted);font-size:13.5px;text-wrap:pretty">{{ empty.text }}</p>
+          <sc-if value="{{ empty.cta }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ newProduct }}" style="margin-top:6px;height:36px;padding:0 16px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer" style-hover="background:var(--accent-hover)">{{ empty.cta }}</button>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ show.dash }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px;animation:zin .25s ease-out">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:8px">
+                <span style="font-size:13px;color:var(--muted);font-weight:500">{{ k.label }}</span>
+                <span style="font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ k.value }}</span>
+                <span style="font-size:12.5px;color:var(--muted)"><span style="color:var(--ok);font-weight:600">{{ k.change }}</span> vs poprzedni okres</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:16px">
+            <div style="flex:2 1 520px;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+                <h3 style="margin:0;font-size:15px;font-weight:600">Sprzedaż</h3>
+                <span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums">{{ chartInfo }}</span>
+              </div>
+              <div onMouseLeave="{{ clearBar }}" style="height:220px;display:flex;align-items:flex-end;gap:{{ chartGap }};border-bottom:1px solid var(--border);background-image:linear-gradient(var(--border) 1px,transparent 1px);background-size:100% 55px;background-position:0 0">
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="30">
+                  <div onMouseEnter="{{ b.onHover }}" style="flex:1;height:100%;display:flex;align-items:flex-end;cursor:default">
+                    <div style="width:100%;height:{{ b.h }}%;background:{{ b.bg }};border-radius:4px 4px 0 0;transition:background .12s"></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:{{ chartGap }};margin-top:-6px">
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="30">
+                  <span style="flex:1;font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:visible">{{ b.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+            <div style="flex:1 1 320px;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+              <h3 style="margin:0;font-size:15px;font-weight:600">Najlepiej sprzedające się</h3>
+              <sc-for list="{{ topProducts }}" as="t" hint-placeholder-count="5">
+                <div onClick="{{ t.onOpen }}" style="display:flex;flex-direction:column;gap:6px;cursor:pointer">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:18px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums">{{ t.rank }}</span>
+                    <span style="flex:1;min-width:0;font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.name }}</span>
+                    <span style="font-size:13px;font-variant-numeric:tabular-nums">{{ t.revenue }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding-left:28px">
+                    <div style="flex:1;height:6px;border-radius:999px;background:var(--surface2);overflow:hidden"><div style="height:100%;width:{{ t.w }}%;background:var(--accent);border-radius:999px"></div></div>
+                    <span style="width:64px;text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums">{{ t.units }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px">
+              <h3 style="margin:0;font-size:15px;font-weight:600">Ostatnie zamówienia</h3>
+              <a href="#" onClick="{{ goOrders }}" style="font-size:13px;font-weight:500">Wszystkie zamówienia</a>
+            </div>
+            <sc-for list="{{ recentOrders }}" as="o" hint-placeholder-count="5">
+              <div onClick="{{ o.onOpen }}" style="display:grid;grid-template-columns:100px minmax(140px,1fr) 120px 120px;gap:12px;align-items:center;padding:11px 20px;border-top:1px solid var(--border);cursor:pointer;font-size:13.5px" style-hover="background:var(--surface2)">
+                <span style="font-weight:600">{{ o.id }}</span>
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.customer }}</span>
+                <span style="text-align:right;font-variant-numeric:tabular-nums">{{ o.totalF }}</span>
+                <span style="justify-self:end;display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;background:{{ o.badge.bg }};color:{{ o.badge.fg }}"><span style="width:6px;height:6px;border-radius:50%;background:currentColor"></span>{{ o.badge.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ show.products }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:12px;animation:zin .25s ease-out">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+            <div style="position:relative;flex:1 1 260px;max-width:340px;display:flex">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="position:absolute;left:11px;top:10px;color:var(--muted)"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+              <input value="{{ q }}" onChange="{{ onQ }}" placeholder="Szukaj po nazwie lub SKU" style="flex:1;height:36px;padding:0 12px 0 34px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13.5px;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+            </div>
+            <select value="{{ cat }}" onChange="{{ onCat }}" style="height:36px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13.5px;cursor:pointer">
+              <option value="all">Wszystkie kategorie</option><option value="Kawa">Kawa</option><option value="Akcesoria">Akcesoria</option><option value="Zestawy">Zestawy</option><option value="Herbata">Herbata</option>
+            </select>
+            <div style="display:flex;padding:3px;border-radius:9px;background:var(--surface2);gap:2px">
+              <sc-for list="{{ statusOpts }}" as="s" hint-placeholder-count="4">
+                <button onClick="{{ s.onClick }}" style="height:30px;padding:0 10px;border:0;border-radius:7px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ s.bg }};color:{{ s.fg }};box-shadow:{{ s.sh }}">{{ s.label }}</button>
+              </sc-for>
+            </div>
+            <button onClick="{{ toggleLow }}" style="height:36px;padding:0 12px;border:1px solid {{ lowChip.border }};border-radius:8px;background:{{ lowChip.bg }};color:{{ lowChip.fg }};font-size:13px;font-weight:500;cursor:pointer">Niski stan (≤ 10)</button>
+            <sc-if value="{{ filtersActive }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ clearFilters }}" style="height:36px;padding:0 6px;border:0;background:none;color:var(--accent-ink);font-size:13px;font-weight:500;cursor:pointer">Wyczyść filtry</button>
+            </sc-if>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+            <sc-if value="{{ selCount }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;background:var(--accent-soft);border-bottom:1px solid var(--border)">
+                <span style="font-size:13px;font-weight:600;color:var(--accent-ink);margin-right:8px">Zaznaczono: {{ selCount }}</span>
+                <button onClick="{{ bulkActive }}" style="height:30px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);font-size:12.5px;font-weight:500;cursor:pointer" style-hover="background:var(--surface2)">Ustaw ACTIVE</button>
+                <button onClick="{{ bulkDraft }}" style="height:30px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);font-size:12.5px;font-weight:500;cursor:pointer" style-hover="background:var(--surface2)">Ustaw DRAFT</button>
+                <button onClick="{{ bulkArchive }}" style="height:30px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);font-size:12.5px;font-weight:500;cursor:pointer" style-hover="background:var(--surface2)">Archiwizuj</button>
+                <button onClick="{{ bulkDelete }}" style="height:30px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--danger);font-size:12.5px;font-weight:500;cursor:pointer" style-hover="background:var(--danger-soft)">Usuń</button>
+                <button onClick="{{ clearSel }}" style="margin-left:auto;height:30px;padding:0 8px;border:0;background:none;font-size:12.5px;color:var(--muted);cursor:pointer">Odznacz</button>
+              </div>
+            </sc-if>
+            <div style="overflow-x:auto">
+              <div style="min-width:860px">
+                <div style="display:grid;grid-template-columns:44px 52px minmax(220px,2.4fr) minmax(110px,1fr) 120px 110px 140px;gap:0 12px;align-items:center;padding:0 16px;height:40px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);background:var(--surface2)">
+                  <input type="checkbox" checked="{{ allChecked }}" onChange="{{ onCheckAll }}" aria-label="Zaznacz wszystkie na stronie" style="width:16px;height:16px;margin:0;accent-color:var(--accent);cursor:pointer">
+                  <span></span><span>Produkt</span><span>Kategoria</span><span>Status</span><span style="text-align:right">Cena od</span><span style="text-align:right">Stan magazynu</span>
+                </div>
+                <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+                  <div onClick="{{ r.onOpen }}" style="display:grid;grid-template-columns:44px 52px minmax(220px,2.4fr) minmax(110px,1fr) 120px 110px 140px;gap:0 12px;align-items:center;padding:0 16px;min-height:60px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13.5px;background:{{ r.rowBg }}" style-hover="background:var(--surface2)">
+                    <div onClick="{{ stop }}" style="display:flex"><input type="checkbox" checked="{{ r.checked }}" onChange="{{ r.onCheck }}" style="width:16px;height:16px;margin:0;accent-color:var(--accent);cursor:pointer"></div>
+                    <div style="width:40px;height:40px;border-radius:8px;background:{{ r.tone }};display:grid;place-items:center;color:rgba(255,255,255,.85);font-size:11px;font-weight:600;letter-spacing:.04em">{{ r.initials }}</div>
+                    <div style="display:flex;flex-direction:column;min-width:0">
+                      <span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span>
+                      <span style="font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,monospace">{{ r.sku }}</span>
+                    </div>
+                    <span style="color:var(--muted)">{{ r.cat }}</span>
+                    <span style="display:inline-flex;align-items:center;gap:6px;justify-self:start;height:22px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.04em;background:{{ r.badge.bg }};color:{{ r.badge.fg }}"><span style="width:6px;height:6px;border-radius:50%;background:currentColor"></span>{{ r.status }}</span>
+                    <span style="text-align:right;font-variant-numeric:tabular-nums">{{ r.priceF }}</span>
+                    <span style="text-align:right;font-variant-numeric:tabular-nums;color:{{ r.stockColor }};font-weight:{{ r.stockWeight }}">{{ r.stockLabel }}</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+                    <span style="font-weight:600">Brak wyników</span>
+                    <span style="color:var(--muted);font-size:13.5px">Żaden produkt nie pasuje do wybranych filtrów.</span>
+                    <button onClick="{{ clearFilters }}" style="margin-top:6px;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;font-weight:500;cursor:pointer">Wyczyść filtry</button>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;font-size:13px;color:var(--muted)">
+              <span>{{ rangeLabel }}</span>
+              <div style="display:flex;gap:4px;align-items:center">
+                <button onClick="{{ prevPage }}" disabled="{{ prevDisabled }}" aria-label="Poprzednia strona" style="width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--border);border-radius:7px;background:var(--surface);cursor:pointer;opacity:{{ prevOpacity }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
+                <sc-for list="{{ pageBtns }}" as="pb" hint-placeholder-count="3">
+                  <button onClick="{{ pb.onClick }}" style="min-width:32px;height:32px;padding:0 8px;border:1px solid {{ pb.border }};border-radius:7px;background:{{ pb.bg }};color:{{ pb.fg }};font-size:13px;font-weight:500;cursor:pointer">{{ pb.n }}</button>
+                </sc-for>
+                <button onClick="{{ nextPage }}" disabled="{{ nextDisabled }}" aria-label="Następna strona" style="width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--border);border-radius:7px;background:var(--surface);cursor:pointer;opacity:{{ nextOpacity }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ show.form }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;animation:zin .25s ease-out">
+          <div style="flex:1 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px">
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px">
+              <h3 style="margin:0;font-size:15px;font-weight:600">Dane podstawowe</h3>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Nazwa produktu *
+                <input value="{{ form.name }}" onChange="{{ on.name }}" placeholder="np. Etiopia Guji Hambela" style="height:38px;padding:0 12px;border:1px solid {{ fErr.nameBorder }};border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+                <sc-if value="{{ fErr.name }}" hint-placeholder-val="{{ false }}"><span style="color:var(--danger);font-weight:400;font-size:12.5px">{{ fErr.name }}</span></sc-if>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Opis
+                <textarea value="{{ form.desc }}" onChange="{{ on.desc }}" rows="4" placeholder="Krótki opis widoczny na karcie produktu" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none;resize:vertical;line-height:1.5" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;max-width:280px">SKU bazowe
+                <input value="{{ form.sku }}" onChange="{{ on.sku }}" style="height:38px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13.5px;font-weight:400;font-family:ui-monospace,Menlo,monospace;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+              </label>
+            </section>
+
+            <sc-if value="{{ isCoffee }}" hint-placeholder-val="{{ false }}">
+              <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <h3 style="margin:0;font-size:15px;font-weight:600">Profil kawy</h3>
+                  <span style="font-size:12.5px;color:var(--muted)">Widoczne tylko dla kategorii Kawa.</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
+                  <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Kraj pochodzenia
+                    <input value="{{ form.origin.country }}" onChange="{{ on.country }}" style="height:38px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+                  </label>
+                  <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Region / farma
+                    <input value="{{ form.origin.region }}" onChange="{{ on.region }}" style="height:38px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+                  </label>
+                  <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Wysokość upraw
+                    <input value="{{ form.origin.altitude }}" onChange="{{ on.altitude }}" placeholder="np. 1900–2100 m n.p.m." style="height:38px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+                  </label>
+                  <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Obróbka
+                    <input value="{{ form.origin.process }}" onChange="{{ on.process }}" placeholder="np. myta, naturalna" style="height:38px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+                  </label>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <span style="font-size:13px;font-weight:500">Stopień palenia</span>
+                  <div style="display:flex;padding:3px;border-radius:9px;background:var(--surface2);gap:2px;align-self:flex-start">
+                    <sc-for list="{{ roastOpts }}" as="ro" hint-placeholder-count="3">
+                      <button onClick="{{ ro.onClick }}" style="height:32px;padding:0 16px;border:0;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;background:{{ ro.bg }};color:{{ ro.fg }};box-shadow:{{ ro.sh }}">{{ ro.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <span style="font-size:13px;font-weight:500">Nuty smakowe</span>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:40px;padding:5px 6px;border:1px solid var(--border);border-radius:8px;background:var(--surface)">
+                    <sc-for list="{{ tagList }}" as="tg" hint-placeholder-count="3">
+                      <span style="display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 4px 0 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:12.5px;font-weight:500">{{ tg.label }}<button onClick="{{ tg.onRemove }}" aria-label="Usuń tag" style="width:20px;height:20px;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer" style-hover="background:rgba(0,0,0,.08)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></button></span>
+                    </sc-for>
+                    <input value="{{ tagDraft }}" onChange="{{ onTagDraft }}" onKeyDown="{{ onTagKey }}" placeholder="Wpisz i naciśnij Enter" style="flex:1;min-width:140px;height:28px;border:0;background:transparent;font-size:13.5px;outline:none;padding:0 6px">
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+                    <span style="font-size:12px;color:var(--muted)">Podpowiedzi:</span>
+                    <sc-for list="{{ noteSuggest }}" as="ns" hint-placeholder-count="4">
+                      <button onClick="{{ ns.onAdd }}" style="height:24px;padding:0 9px;border:1px dashed var(--border-strong);border-radius:999px;background:transparent;font-size:12px;color:var(--muted);cursor:pointer" style-hover="color:var(--text);border-color:var(--muted)">+ {{ ns.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <span style="font-size:13px;font-weight:500">Metody parzenia</span>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px">
+                    <sc-for list="{{ methodOpts }}" as="m" hint-placeholder-count="6">
+                      <button onClick="{{ m.onClick }}" aria-pressed="{{ m.on }}" style="display:flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid {{ m.border }};border-radius:8px;background:{{ m.bg }};color:{{ m.fg }};font-size:13px;font-weight:500;cursor:pointer">{{ m.mark }} {{ m.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </section>
+            </sc-if>
+
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;gap:12px">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <h3 style="margin:0;font-size:15px;font-weight:600">Warianty</h3>
+                  <span style="font-size:12.5px;color:var(--muted)">Gramatura, mielenie lub rozmiar. Ceny brutto.</span>
+                </div>
+                <button onClick="{{ addVariant }}" style="display:flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;font-weight:500;cursor:pointer" style-hover="background:var(--surface2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Dodaj wariant</button>
+              </div>
+              <div style="overflow-x:auto">
+                <div style="min-width:620px">
+                  <div style="display:grid;grid-template-columns:minmax(160px,1.6fr) minmax(130px,1fr) 110px 90px 36px;gap:8px;padding:0 20px;height:34px;align-items:center;background:var(--surface2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">
+                    <span>Wariant</span><span>SKU</span><span style="text-align:right">Cena (zł)</span><span style="text-align:right">Stan</span><span></span>
+                  </div>
+                  <sc-for list="{{ varRows }}" as="v" hint-placeholder-count="3">
+                    <div style="display:grid;grid-template-columns:minmax(160px,1.6fr) minmax(130px,1fr) 110px 90px 36px;gap:8px;padding:8px 20px;align-items:center;border-bottom:1px solid var(--border)">
+                      <input value="{{ v.name }}" onChange="{{ v.onName }}" placeholder="np. 250 g · ziarna" style="height:34px;padding:0 10px;border:1px solid {{ v.nameBorder }};border-radius:7px;background:var(--surface);font-size:13.5px;outline:none;min-width:0" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+                      <input value="{{ v.sku }}" onChange="{{ v.onSku }}" style="height:34px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);font-size:12.5px;font-family:ui-monospace,Menlo,monospace;outline:none;min-width:0" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+                      <input value="{{ v.price }}" onChange="{{ v.onPrice }}" inputmode="decimal" style="height:34px;padding:0 10px;border:1px solid {{ v.priceBorder }};border-radius:7px;background:var(--surface);font-size:13.5px;text-align:right;font-variant-numeric:tabular-nums;outline:none;min-width:0" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+                      <input value="{{ v.stock }}" onChange="{{ v.onStock }}" inputmode="numeric" style="height:34px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);font-size:13.5px;text-align:right;font-variant-numeric:tabular-nums;outline:none;min-width:0" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+                      <button onClick="{{ v.onDel }}" aria-label="Usuń wariant" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer" style-hover="background:var(--danger-soft);color:var(--danger)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path></svg></button>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ noVariants }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:20px;text-align:center;font-size:13px;color:var(--muted);border-bottom:1px solid var(--border)">Brak wariantów. Produkt musi mieć co najmniej jeden wariant, aby był widoczny w sklepie.</div>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;gap:12px;padding:12px 20px;font-size:13px;color:var(--muted)">
+                <span>{{ varSummary }}</span>
+                <sc-if value="{{ fErr.variants }}" hint-placeholder-val="{{ false }}"><span style="color:var(--danger)">{{ fErr.variants }}</span></sc-if>
+              </div>
+            </section>
+
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <h3 style="margin:0;font-size:15px;font-weight:600">Galeria zdjęć</h3>
+                <span style="font-size:12.5px;color:var(--muted)">Przeciągnij, aby zmienić kolejność. Pierwsze zdjęcie jest główne.</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px">
+                <sc-for list="{{ galTiles }}" as="g" hint-placeholder-count="3">
+                  <div draggable="true" onDragStart="{{ g.onDragStart }}" onDragOver="{{ g.onDragOver }}" onDrop="{{ g.onDrop }}" onDragEnd="{{ g.onDragEnd }}" style="position:relative;aspect-ratio:1;border-radius:10px;cursor:grab;background-color:{{ g.tone }};background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 8px,transparent 8px 16px);outline:{{ g.outline }};outline-offset:2px;opacity:{{ g.opacity }};display:flex;align-items:flex-end;padding:8px;transition:outline-color .1s">
+                    <sc-if value="{{ g.isMain }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:8px;left:8px;height:20px;padding:0 7px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center">Główne</span></sc-if>
+                    <button onClick="{{ g.onRemove }}" aria-label="Usuń zdjęcie" style="position:absolute;top:6px;right:6px;width:24px;height:24px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;cursor:pointer"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></button>
+                    <span style="font-size:11px;color:rgba(255,255,255,.9);font-family:ui-monospace,Menlo,monospace;background:rgba(0,0,0,.35);padding:2px 6px;border-radius:4px">{{ g.num }} · {{ g.label }}</span>
+                  </div>
+                </sc-for>
+                <button onClick="{{ addImage }}" style="aspect-ratio:1;border:1.5px dashed var(--border-strong);border-radius:10px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);font-size:12.5px;cursor:pointer;padding:8px;text-align:center" style-hover="border-color:var(--accent);color:var(--accent-ink)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>Dodaj zdjęcie<span style="font-size:11px">JPG, PNG, WebP · do 5 MB</span>
+                </button>
+              </div>
+            </section>
+
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px">
+              <h3 style="margin:0;font-size:15px;font-weight:600">SEO</h3>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">
+                <span style="display:flex;justify-content:space-between">Meta tytuł <span style="font-weight:400;color:{{ seo.titleColor }};font-variant-numeric:tabular-nums">{{ seo.titleCount }}</span></span>
+                <input value="{{ form.seo.title }}" onChange="{{ on.seoTitle }}" placeholder="{{ seo.titlePh }}" style="height:38px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+              </label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Adres URL (slug)
+                <div style="display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
+                  <span style="display:flex;align-items:center;padding:0 10px;background:var(--surface2);color:var(--muted);font-weight:400;font-size:13px;border-right:1px solid var(--border)">ziarnista.pl/produkt/</span>
+                  <input value="{{ form.seo.slug }}" onChange="{{ on.slug }}" style="flex:1;min-width:0;height:38px;padding:0 10px;border:0;background:transparent;font-size:13.5px;font-weight:400;font-family:ui-monospace,Menlo,monospace;outline:none">
+                </div>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">
+                <span style="display:flex;justify-content:space-between">Meta opis <span style="font-weight:400;color:{{ seo.descColor }};font-variant-numeric:tabular-nums">{{ seo.descCount }}</span></span>
+                <textarea value="{{ form.seo.desc }}" onChange="{{ on.seoDesc }}" rows="3" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;outline:none;resize:vertical;line-height:1.5" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+              </label>
+              <div style="display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:10px;background:var(--bg);border:1px solid var(--border)">
+                <span style="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:4px">Podgląd w wyszukiwarce</span>
+                <span style="font-size:12.5px;color:var(--muted)">{{ seo.url }}</span>
+                <span style="font-size:17px;color:var(--info);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ seo.prevTitle }}</span>
+                <span style="font-size:13px;color:var(--muted);text-wrap:pretty">{{ seo.prevDesc }}</span>
+              </div>
+            </section>
+          </div>
+
+          <div style="flex:1 1 280px;max-width:100%;display:flex;flex-direction:column;gap:16px;position:sticky;top:84px">
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px">
+              <h3 style="margin:0;font-size:15px;font-weight:600">Organizacja</h3>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Status
+                <select value="{{ form.status }}" onChange="{{ on.status }}" style="height:38px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;cursor:pointer">
+                  <option value="DRAFT">DRAFT · szkic</option><option value="ACTIVE">ACTIVE · widoczny w sklepie</option><option value="ARCHIVED">ARCHIVED · zarchiwizowany</option>
+                </select>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Kategoria
+                <select value="{{ form.category }}" onChange="{{ on.category }}" style="height:38px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:400;cursor:pointer">
+                  <option value="Kawa">Kawa</option><option value="Akcesoria">Akcesoria</option><option value="Zestawy">Zestawy</option><option value="Herbata">Herbata</option>
+                </select>
+              </label>
+            </section>
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:10px;font-size:13.5px">
+              <h3 style="margin:0 0 4px;font-size:15px;font-weight:600">Podsumowanie</h3>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Cena od</span><span style="font-variant-numeric:tabular-nums;font-weight:500">{{ summary.price }}</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Łączny stan</span><span style="font-variant-numeric:tabular-nums;font-weight:500">{{ summary.stock }}</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Warianty</span><span style="font-weight:500">{{ summary.variants }}</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Zdjęcia</span><span style="font-weight:500">{{ summary.images }}</span></div>
+            </section>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ show.orders }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:12px;animation:zin .25s ease-out">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
+            <div style="display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--border)">
+              <sc-for list="{{ oTabs }}" as="t" hint-placeholder-count="7">
+                <button onClick="{{ t.onClick }}" style="height:38px;padding:0 12px;border:0;border-bottom:2px solid {{ t.line }};margin-bottom:-1px;background:transparent;color:{{ t.fg }};font-size:13.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px">{{ t.label }}<span style="font-size:11.5px;color:var(--muted);background:var(--surface2);padding:1px 6px;border-radius:999px">{{ t.count }}</span></button>
+              </sc-for>
+            </div>
+            <div style="position:relative;flex:0 1 300px;display:flex">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="position:absolute;left:11px;top:10px;color:var(--muted)"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+              <input value="{{ oq }}" onChange="{{ onOq }}" placeholder="Nr zamówienia, klient, e-mail" style="flex:1;height:36px;padding:0 12px 0 34px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13.5px;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">
+            </div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+            <div style="overflow-x:auto">
+              <div style="min-width:860px">
+                <div style="display:grid;grid-template-columns:100px 140px minmax(200px,1.6fr) 80px 120px 90px 130px;gap:12px;align-items:center;padding:0 20px;height:40px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;background:var(--surface2);border-bottom:1px solid var(--border)">
+                  <span>Numer</span><span>Data</span><span>Klient</span><span style="text-align:right">Pozycje</span><span style="text-align:right">Kwota</span><span>Płatność</span><span>Status</span>
+                </div>
+                <sc-for list="{{ orderRows }}" as="o" hint-placeholder-count="8">
+                  <div onClick="{{ o.onOpen }}" style="display:grid;grid-template-columns:100px 140px minmax(200px,1.6fr) 80px 120px 90px 130px;gap:12px;align-items:center;padding:0 20px;min-height:58px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13.5px" style-hover="background:var(--surface2)">
+                    <span style="font-weight:600">{{ o.id }}</span>
+                    <span style="color:var(--muted);font-variant-numeric:tabular-nums">{{ o.date }}, {{ o.time }}</span>
+                    <div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:500">{{ o.customer }}</span><span style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.email }}</span></div>
+                    <span style="text-align:right;color:var(--muted)">{{ o.itemsCount }}</span>
+                    <span style="text-align:right;font-weight:500;font-variant-numeric:tabular-nums">{{ o.totalF }}</span>
+                    <span style="color:var(--muted)">{{ o.payment }}</span>
+                    <span style="justify-self:start;display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;background:{{ o.badge.bg }};color:{{ o.badge.fg }}"><span style="width:6px;height:6px;border-radius:50%;background:currentColor"></span>{{ o.badge.label }}</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ noOrderResults }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:48px 24px;text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-weight:600">Brak wyników</span><span style="color:var(--muted);font-size:13.5px">Brak zamówień w tym widoku.</span></div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ show.order }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;animation:zin .25s ease-out">
+          <div style="flex:1 1 540px;min-width:0;display:flex;flex-direction:column;gap:16px">
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <h3 style="margin:0;padding:16px 20px;font-size:15px;font-weight:600">Pozycje</h3>
+              <sc-for list="{{ od.items }}" as="it" hint-placeholder-count="2">
+                <div style="display:grid;grid-template-columns:44px minmax(0,1fr) 70px 110px;gap:12px;align-items:center;padding:12px 20px;border-top:1px solid var(--border);font-size:13.5px">
+                  <div style="width:40px;height:40px;border-radius:8px;background:{{ it.tone }}"></div>
+                  <div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:500">{{ it.name }}</span><span style="font-size:12.5px;color:var(--muted)">{{ it.variant }} · {{ it.priceF }}</span></div>
+                  <span style="text-align:right;color:var(--muted)">× {{ it.qty }}</span>
+                  <span style="text-align:right;font-weight:500;font-variant-numeric:tabular-nums">{{ it.lineF }}</span>
+                </div>
+              </sc-for>
+              <div style="display:flex;flex-direction:column;gap:8px;padding:14px 20px;border-top:1px solid var(--border);background:var(--surface2);font-size:13.5px">
+                <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Suma częściowa</span><span style="font-variant-numeric:tabular-nums">{{ od.subtotalF }}</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Dostawa · InPost Paczkomat</span><span style="font-variant-numeric:tabular-nums">{{ od.shippingF }}</span></div>
+                <div style="display:flex;justify-content:space-between;font-weight:600;font-size:15px;padding-top:6px;border-top:1px solid var(--border)"><span>Razem</span><span style="font-variant-numeric:tabular-nums">{{ od.totalF }}</span></div>
+              </div>
+            </section>
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px">
+              <h3 style="margin:0;font-size:15px;font-weight:600">Historia</h3>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ od.history }}" as="h" hint-placeholder-count="3">
+                  <div style="display:grid;grid-template-columns:18px minmax(0,1fr);gap:12px">
+                    <div style="display:flex;flex-direction:column;align-items:center"><span style="width:10px;height:10px;border-radius:50%;margin-top:5px;background:{{ h.dot }};flex:none"></span><span style="flex:1;width:1px;background:var(--border);display:{{ h.line }}"></span></div>
+                    <div style="display:flex;flex-direction:column;gap:2px;padding-bottom:16px">
+                      <span style="font-size:13.5px;font-weight:500">{{ h.label }}</span>
+                      <span style="font-size:12.5px;color:var(--muted)">{{ h.time }} · {{ h.by }}</span>
+                      <sc-if value="{{ h.note }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;margin-top:4px;padding:8px 10px;border-radius:8px;background:var(--surface2)">{{ h.note }}</span></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+          </div>
+          <div style="flex:1 1 300px;max-width:100%;display:flex;flex-direction:column;gap:16px">
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px">
+              <h3 style="margin:0;font-size:15px;font-weight:600">Zmień status</h3>
+              <sc-if value="{{ od.next }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ applyNext }}" style="height:38px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;font-size:13.5px;cursor:pointer" style-hover="background:var(--accent-hover)">Oznacz jako: {{ od.next }}</button>
+                <span style="font-size:12px;color:var(--muted);text-align:center">lub wybierz inny status</span>
+              </sc-if>
+              <select value="{{ newStatus }}" onChange="{{ onNewStatus }}" style="height:38px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;cursor:pointer">
+                <sc-for list="{{ statusSelect }}" as="so" hint-placeholder-count="6"><option value="{{ so.value }}">{{ so.label }}</option></sc-for>
+              </select>
+              <textarea value="{{ statusNote }}" onChange="{{ onNote }}" rows="2" placeholder="Notatka wewnętrzna (opcjonalnie)" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13.5px;outline:none;resize:vertical" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" checked="{{ notify }}" onChange="{{ onNotify }}" style="width:16px;height:16px;margin:0;accent-color:var(--accent)">Powiadom klienta e-mailem</label>
+              <button onClick="{{ applyStatus }}" disabled="{{ applyDisabled }}" style="height:36px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-weight:500;font-size:13.5px;cursor:pointer;opacity:{{ applyOpacity }}" style-hover="background:var(--surface2)">Zapisz status</button>
+            </section>
+            <section style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px;font-size:13.5px">
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Klient</span>
+                <span style="font-weight:500">{{ od.customer }}</span>
+                <a href="#" onClick="{{ noop }}">{{ od.email }}</a>
+                <span style="color:var(--muted)">{{ od.phone }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px;padding-top:14px;border-top:1px solid var(--border)">
+                <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Adres dostawy</span>
+                <span>{{ od.customer }}</span><span>{{ od.street }}</span><span>{{ od.city }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px;padding-top:14px;border-top:1px solid var(--border)">
+                <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Płatność</span>
+                <span>{{ od.payment }} · <span style="color:{{ od.payColor }}">{{ od.payState }}</span></span>
+              </div>
+            </section>
+          </div>
+        </div>
+      </sc-if>
+    </main>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ confirm }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeConfirm }}" style="position:fixed;inset:0;background:var(--overlay);display:grid;place-items:center;padding:24px;z-index:50">
+    <div onClick="{{ stop }}" role="dialog" aria-modal="true" style="width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:10px;animation:zin .18s ease-out">
+      <h2 style="margin:0;font-size:17px;font-weight:600">{{ confirm.title }}</h2>
+      <p style="margin:0;color:var(--muted);font-size:13.5px;text-wrap:pretty">{{ confirm.text }}</p>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+        <button onClick="{{ closeConfirm }}" style="height:36px;padding:0 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-weight:500;cursor:pointer">Anuluj</button>
+        <button onClick="{{ confirm.onOk }}" style="height:36px;padding:0 14px;border:0;border-radius:8px;background:var(--danger);color:var(--surface);font-weight:600;cursor:pointer">{{ confirm.cta }}</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="position:fixed;right:24px;bottom:24px;z-index:60;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;background:var(--text);color:var(--bg);font-size:13.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:zin .2s ease-out">
+    <span style="width:8px;height:8px;border-radius:50%;background:{{ toast.dot }}"></span>{{ toast.text }}
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;login&quot;,&quot;dashboard&quot;,&quot;products&quot;,&quot;productForm&quot;,&quot;orders&quot;,&quot;order&quot;],&quot;default&quot;:&quot;login&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;demoState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;data&quot;,&quot;empty&quot;,&quot;loading&quot;,&quot;error&quot;,&quot;forbidden&quot;],&quot;default&quot;:&quot;data&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = this.init();
+
+  init() {
+    const P = (id, name, cat, status, price, stock, sku, tone) => ({ id, name, cat, status, price, stock, sku, tone });
+    const products = [
+      P(1, 'Etiopia Yirgacheffe Kochere', 'Kawa', 'ACTIVE', 49, 124, 'KAW-ETH-01', '#8A5A3C'),
+      P(2, 'Kolumbia Huila El Paraíso', 'Kawa', 'ACTIVE', 52, 86, 'KAW-COL-02', '#6F4A33'),
+      P(3, 'Kenia Nyeri AA', 'Kawa', 'ACTIVE', 64, 9, 'KAW-KEN-03', '#9C4A3A'),
+      P(4, 'Brazylia Cerrado Mineiro', 'Kawa', 'ACTIVE', 39, 210, 'KAW-BRA-04', '#5C3D2B'),
+      P(5, 'Gwatemala Antigua', 'Kawa', 'DRAFT', 54, 0, 'KAW-GTM-05', '#7A5238'),
+      P(6, 'Rwanda Nyamasheke', 'Kawa', 'ACTIVE', 58, 40, 'KAW-RWA-06', '#A0614A'),
+      P(7, 'Espresso Blend Ziarnista', 'Kawa', 'ACTIVE', 42, 320, 'KAW-BLD-07', '#3F2A1E'),
+      P(8, 'Decaf Kolumbia Swiss Water', 'Kawa', 'ACTIVE', 46, 8, 'KAW-DCF-08', '#816451'),
+      P(9, 'Kostaryka Tarrazú Honey', 'Kawa', 'ARCHIVED', 59, 0, 'KAW-CRI-09', '#B07A4F'),
+      P(10, 'Panama Geisha Boquete', 'Kawa', 'DRAFT', 189, 6, 'KAW-PAN-10', '#B5543E'),
+      P(11, 'Drip Hario V60 02', 'Akcesoria', 'ACTIVE', 89, 34, 'AKC-V60-11', '#6F7F7D'),
+      P(12, 'Młynek Comandante C40', 'Akcesoria', 'ACTIVE', 1149, 5, 'AKC-CMD-12', '#4E4A47'),
+      P(13, 'Aeropress Clear', 'Akcesoria', 'ACTIVE', 179, 22, 'AKC-AER-13', '#7D8A93'),
+      P(14, 'Waga Timemore Black Mirror', 'Akcesoria', 'ACTIVE', 249, 0, 'AKC-TMR-14', '#2E2C2B'),
+      P(15, 'Filtry papierowe V60 (100 szt.)', 'Akcesoria', 'ACTIVE', 29, 140, 'AKC-FLT-15', '#A89679'),
+      P(16, 'Zestaw degustacyjny 3 × 100 g', 'Zestawy', 'ACTIVE', 79, 48, 'ZST-DEG-16', '#A6714E'),
+      P(17, 'Subskrypcja miesięczna', 'Zestawy', 'DRAFT', 99, 60, 'ZST-SUB-17', '#8B6B56'),
+      P(18, 'Herbata Sencha Kagoshima', 'Herbata', 'ARCHIVED', 45, 18, 'HRB-SEN-18', '#6E7F4E'),
+    ];
+    const mail = n => n.toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(' ', '.') + '@example.com';
+    const FLOW = ['NEW', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+    const O = (id, date, time, customer, street, city, items, payment, status) => {
+      const its = items.map(([pid, variant, qty]) => { const p = products.find(x => x.id === pid); return { pid, name: p.name, tone: p.tone, variant, qty, price: Math.round(p.price * (variant.startsWith('1 kg') ? 3.4 : 1)) }; });
+      const steps = status === 'CANCELLED' ? ['NEW', 'CANCELLED'] : FLOW.slice(0, FLOW.indexOf(status) + 1);
+      const history = steps.map((s, i) => ({ status: s, time: i === 0 ? `${date}, ${time}` : date, by: i === 0 ? 'Sklep internetowy' : 'Anna Kowalczyk', note: s === 'CANCELLED' ? 'Klient zrezygnował przed wysyłką. Zwrot środków zlecony.' : '' }));
+      return { id, date, time, customer, email: mail(customer), phone: '+48 ' + (500 + (id.charCodeAt(7) % 9) * 11) + ' 2' + id.slice(-2) + ' 4' + id.slice(-3, -1), street, city, items: its, payment, status, history };
+    };
+    const orders = [
+      O('ZR-10496', '02.11.2026', '09:42', 'Marta Wiśniewska', 'ul. Długa 14/3', '31-147 Kraków', [[1, '250 g · ziarna', 2], [11, 'Standard', 1]], 'BLIK', 'NEW'),
+      O('ZR-10495', '02.11.2026', '08:15', 'Tomasz Zieliński', 'ul. Piotrkowska 120', '90-006 Łódź', [[7, '1 kg · ziarna', 1]], 'Karta', 'PAID'),
+      O('ZR-10494', '01.11.2026', '21:03', 'Karolina Nowak', 'ul. Świętojańska 45/8', '81-391 Gdynia', [[16, 'Standard', 1], [15, 'Standard', 2]], 'BLIK', 'PAID'),
+      O('ZR-10493', '01.11.2026', '17:48', 'Piotr Kamiński', 'ul. Ruska 22', '50-079 Wrocław', [[12, 'Standard', 1]], 'Przelew', 'PROCESSING'),
+      O('ZR-10492', '01.11.2026', '12:20', 'Aleksandra Lewandowska', 'al. Niepodległości 18/4', '61-713 Poznań', [[2, '250 g · mielona (przelew)', 2], [3, '250 g · ziarna', 1]], 'Karta', 'PROCESSING'),
+      O('ZR-10491', '31.10.2026', '19:05', 'Michał Wójcik', 'ul. Hoża 51/12', '00-681 Warszawa', [[10, '250 g · ziarna', 1]], 'Karta', 'SHIPPED'),
+      O('ZR-10490', '31.10.2026', '10:37', 'Natalia Kowalska', 'ul. Narutowicza 9', '20-016 Lublin', [[4, '1 kg · ziarna', 1], [7, '250 g · ziarna', 2]], 'BLIK', 'SHIPPED'),
+      O('ZR-10489', '30.10.2026', '15:12', 'Jakub Szymański', 'ul. Mariacka 30/2', '40-014 Katowice', [[13, 'Standard', 1], [1, '250 g · ziarna', 1]], 'Karta', 'DELIVERED'),
+      O('ZR-10488', '30.10.2026', '09:58', 'Zuzanna Dąbrowska', 'ul. Rynek Staromiejski 7', '87-100 Toruń', [[6, '250 g · ziarna', 2]], 'BLIK', 'DELIVERED'),
+      O('ZR-10487', '29.10.2026', '20:44', 'Bartosz Kozłowski', 'ul. Mickiewicza 3/1', '70-383 Szczecin', [[8, '250 g · ziarna', 1]], 'Przelew', 'CANCELLED'),
+      O('ZR-10486', '29.10.2026', '13:31', 'Julia Jankowska', 'ul. Sienkiewicza 12', '15-092 Białystok', [[17, 'Standard', 1]], 'Karta', 'DELIVERED'),
+      O('ZR-10485', '28.10.2026', '18:06', 'Kacper Mazur', 'ul. Grunwaldzka 88/5', '80-244 Gdańsk', [[14, 'Standard', 1], [15, 'Standard', 1]], 'BLIK', 'DELIVERED'),
+      O('ZR-10484', '28.10.2026', '11:22', 'Wiktoria Krawczyk', 'ul. Kościuszki 40', '35-030 Rzeszów', [[2, '1 kg · ziarna', 1]], 'Karta', 'DELIVERED'),
+      O('ZR-10483', '27.10.2026', '16:50', 'Mateusz Piotrowski', 'ul. Batorego 5/7', '10-089 Olsztyn', [[1, '250 g · ziarna', 1], [16, 'Standard', 1]], 'BLIK', 'DELIVERED'),
+    ];
+    const start = this.props.startScreen ?? 'login';
+    const s = {
+      screen: start === 'login' ? 'login' : 'app', page: 'dashboard', theme: this.props.theme ?? 'light',
+      login: { email: 'anna@ziarnista.pl', password: '', error: '', emailErr: '', pwErr: '', loading: false, remember: true }, showPw: false,
+      products, orders, q: '', cat: 'all', status: 'all', lowStock: false, pageNo: 1, selected: {},
+      oq: '', ostatus: 'all', period: '30d', hoverBar: -1, gq: '',
+      form: null, fErr: {}, dirty: false, tagDraft: '', dragId: null, overId: null,
+      orderId: null, newStatus: '', statusNote: '', notify: true,
+      demo: this.props.demoState ?? 'data', navLoading: false, toast: null, confirm: null,
+    };
+    if (start === 'productForm') { s.page = 'productForm'; s.form = this.makeForm(products[0]); }
+    else if (start === 'order') { s.page = 'order'; s.orderId = orders[0].id; s.newStatus = 'PAID'; }
+    else if (start !== 'login') s.page = start;
+    return s;
+  }
+
+  componentDidUpdate(prev) {
+    if (prev.theme !== this.props.theme && this.props.theme) this.setState({ theme: this.props.theme });
+    if (prev.demoState !== this.props.demoState && this.props.demoState) this.setState({ demo: this.props.demoState });
+  }
+
+  coffeeMeta(id) {
+    const M = {
+      1: ['Etiopia', 'Yirgacheffe · Kochere', '1900–2100 m n.p.m.', 'myta', 'Jasny', ['jaśmin', 'bergamotka', 'brzoskwinia'], ['Przelew', 'Aeropress']],
+      2: ['Kolumbia', 'Huila · El Paraíso', '1700 m n.p.m.', 'myta', 'Średni', ['czekolada mleczna', 'czerwone jabłko', 'karmel'], ['Espresso', 'Przelew']],
+      3: ['Kenia', 'Nyeri', '1800 m n.p.m.', 'myta', 'Jasny', ['czarna porzeczka', 'grejpfrut'], ['Przelew', 'Aeropress']],
+      4: ['Brazylia', 'Cerrado Mineiro', '1100 m n.p.m.', 'naturalna', 'Średni', ['orzech laskowy', 'kakao', 'toffi'], ['Espresso', 'Moka']],
+      5: ['Gwatemala', 'Antigua', '1500 m n.p.m.', 'myta', 'Średni', ['kakao', 'śliwka'], ['Espresso', 'Przelew']],
+      6: ['Rwanda', 'Nyamasheke', '1800 m n.p.m.', 'myta', 'Jasny', ['malina', 'hibiskus'], ['Przelew']],
+      7: ['Brazylia / Kolumbia', 'Mieszanka', '', 'naturalna / myta', 'Ciemny', ['gorzka czekolada', 'orzechy', 'melasa'], ['Espresso', 'Moka']],
+      8: ['Kolumbia', 'Huila', '1600 m n.p.m.', 'Swiss Water', 'Średni', ['karmel', 'wanilia'], ['Espresso', 'French press']],
+      9: ['Kostaryka', 'Tarrazú', '1600 m n.p.m.', 'honey', 'Jasny', ['miód', 'morela'], ['Przelew']],
+      10: ['Panama', 'Boquete', '1700 m n.p.m.', 'naturalna', 'Jasny', ['jaśmin', 'mango', 'bergamotka'], ['Przelew', 'Aeropress']],
+    };
+    return M[id] || ['', '', '', '', 'Średni', [], []];
+  }
+
+  slugify(t) { return t.toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+  makeForm(p) {
+    if (!p) return { id: null, name: '', desc: '', sku: '', category: 'Kawa', status: 'DRAFT', origin: { country: '', region: '', altitude: '', process: '' }, roast: 'Średni', notes: [], methods: [], variants: [{ id: 'v' + Date.now(), name: '250 g · ziarna', sku: '', price: '', stock: '0' }], images: [], seo: { title: '', slug: '', desc: '' }, slugTouched: false };
+    const m = this.coffeeMeta(p.id);
+    const coffee = p.cat === 'Kawa';
+    const v = (n, suf, mult, st) => ({ id: 'v' + p.id + suf, name: n, sku: p.sku + '-' + suf, price: String(Math.round(p.price * mult)), stock: String(st) });
+    const variants = coffee ? [v('250 g · ziarna', '250Z', 1, Math.round(p.stock * .6)), v('250 g · mielona (przelew)', '250M', 1, Math.round(p.stock * .25)), v('1 kg · ziarna', '1KZ', 3.4, p.stock - Math.round(p.stock * .6) - Math.round(p.stock * .25))] : [v('Standard', 'STD', 1, p.stock)];
+    const imgs = (coffee ? ['opakowanie-front', 'ziarna', 'opakowanie-tyl'] : ['produkt', 'detal']).map((l, i) => ({ id: 'i' + p.id + i, label: l, tone: p.tone }));
+    return {
+      id: p.id, name: p.name, sku: p.sku, category: p.cat, status: p.status,
+      desc: coffee ? `${m[0]}, ${m[1]}. Obróbka ${m[3]}, palenie ${m[4].toLowerCase()}. W filiżance: ${m[5].join(', ')}.` : 'Sprawdzony sprzęt, którego używamy na co dzień w palarni.',
+      origin: { country: m[0], region: m[1], altitude: m[2], process: m[3] }, roast: m[4], notes: [...m[5]], methods: [...m[6]],
+      variants, images: imgs, seo: { title: `${p.name} | Ziarnista`, slug: this.slugify(p.name), desc: coffee ? `Kawa speciality ${m[0]} ${m[1]} ze świeżego palenia. Nuty: ${m[5].join(', ')}. Wysyłka w 24 h.` : `${p.name} w sklepie Ziarnista. Wysyłka w 24 h.` }, slugTouched: true,
+    };
+  }
+
+  fmt(n) { return Number(n).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' zł'; }
+
+  showToast(text, kind = 'ok') {
+    clearTimeout(this._t);
+    this.setState({ toast: { text, dot: kind === 'ok' ? 'var(--ok)' : 'var(--danger)' } });
+    this._t = setTimeout(() => this.setState({ toast: null }), 2600);
+  }
+
+  go(page, extra = {}) {
+    clearTimeout(this._nl);
+    this.setState({ page, navLoading: true, selected: {}, ...extra });
+    this._nl = setTimeout(() => this.setState({ navLoading: false }), 420);
+    if (typeof window !== 'undefined') window.scrollTo(0, 0);
+  }
+
+  openProduct(p) { this.go('productForm', { form: this.makeForm(p), fErr: {}, dirty: false, tagDraft: '' }); }
+  openOrder(o) { const FLOW = ['NEW', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED']; const i = FLOW.indexOf(o.status); this.go('order', { orderId: o.id, newStatus: i >= 0 && i < 4 ? FLOW[i + 1] : o.status, statusNote: '' }); }
+
+  setForm(fn) { this.setState(s => ({ form: fn(s.form), dirty: true })); }
+  setF(k) { return e => { const v = e.target.value; this.setForm(f => { const n = { ...f, [k]: v }; if (k === 'name' && !f.slugTouched) n.seo = { ...f.seo, slug: this.slugify(v) }; return n; }); }; }
+  setO(k) { return e => { const v = e.target.value; this.setForm(f => ({ ...f, origin: { ...f.origin, [k]: v } })); }; }
+  setSeo(k) { return e => { const v = e.target.value; this.setForm(f => ({ ...f, seo: { ...f.seo, [k]: k === 'slug' ? this.slugify(v) || v : v }, slugTouched: k === 'slug' ? true : f.slugTouched })); }; }
+  addTag(t) { t = t.trim().toLowerCase(); if (!t) return; this.setForm(f => f.notes.includes(t) ? f : { ...f, notes: [...f.notes, t] }); this.setState({ tagDraft: '' }); }
+
+  saveProduct() {
+    const f = this.state.form; const fErr = {};
+    if (!f.name.trim()) { fErr.name = 'Podaj nazwę produktu.'; fErr.nameBorder = 'var(--danger)'; }
+    const badV = f.variants.filter(v => !v.name.trim() || !(parseFloat(String(v.price).replace(',', '.')) > 0)).map(v => v.id);
+    if (!f.variants.length) fErr.variants = 'Dodaj co najmniej jeden wariant.';
+    else if (badV.length) { fErr.variants = 'Uzupełnij nazwę i cenę w zaznaczonych wariantach.'; fErr.badV = badV; }
+    if (Object.keys(fErr).length) { this.setState({ fErr }); this.showToast('Popraw zaznaczone pola', 'err'); return; }
+    const price = Math.min(...f.variants.map(v => parseFloat(String(v.price).replace(',', '.'))));
+    const stock = f.variants.reduce((a, v) => a + (parseInt(v.stock) || 0), 0);
+    this.setState(s => {
+      const id = f.id ?? Math.max(...s.products.map(p => p.id), 0) + 1;
+      const old = s.products.find(p => p.id === id);
+      const rec = { id, name: f.name.trim(), cat: f.category, status: f.status, price, stock, sku: f.sku || ('NEW-' + id), tone: old ? old.tone : '#9A6A4F' };
+      return { products: old ? s.products.map(p => p.id === id ? rec : p) : [rec, ...s.products], form: { ...f, id }, fErr: {}, dirty: false };
+    });
+    this.showToast('Zapisano produkt');
+  }
+
+  setOrderStatus(status) {
+    const LBL = { NEW: 'Nowe', PAID: 'Opłacone', PROCESSING: 'W realizacji', SHIPPED: 'Wysłane', DELIVERED: 'Dostarczone', CANCELLED: 'Anulowane' };
+    const note = this.state.statusNote.trim();
+    const FLOW = ['NEW', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+    const i = FLOW.indexOf(status);
+    this.setState(s => ({
+      orders: s.orders.map(o => o.id === s.orderId ? { ...o, status, history: [...o.history, { status, time: 'Dziś, ' + new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }), by: 'Anna Kowalczyk', note }] } : o),
+      statusNote: '', newStatus: i >= 0 && i < 4 ? FLOW[i + 1] : status,
+    }));
+    this.showToast(`Status zmieniony na „${LBL[status]}”` + (this.state.notify ? ' · klient powiadomiony' : ''));
+  }
+
+  renderVals() {
+    const S = this.state;
+    const fmt = n => this.fmt(n);
+    const pill = (on) => on ? { bg: 'var(--surface)', fg: 'var(--text)', sh: 'var(--shadow), 0 0 0 1px var(--border)' } : { bg: 'transparent', fg: 'var(--muted)', sh: 'none' };
+    const PB = { ACTIVE: { bg: 'var(--ok-soft)', fg: 'var(--ok)' }, DRAFT: { bg: 'var(--warn-soft)', fg: 'var(--warn)' }, ARCHIVED: { bg: 'var(--neutral-soft)', fg: 'var(--muted)' } };
+    const OS = { NEW: ['Nowe', 'info'], PAID: ['Opłacone', 'accent'], PROCESSING: ['W realizacji', 'warn'], SHIPPED: ['Wysłane', 'violet'], DELIVERED: ['Dostarczone', 'ok'], CANCELLED: ['Anulowane', 'danger'] };
+    const obadge = st => ({ label: OS[st][0], bg: `var(--${OS[st][1]}-soft)`, fg: OS[st][1] === 'accent' ? 'var(--accent-ink)' : `var(--${OS[st][1]})` });
+    const orderTotal = o => { const sub = o.items.reduce((a, i) => a + i.price * i.qty, 0); const ship = sub >= 200 ? 0 : 14.99; return { sub, ship, total: sub + ship }; };
+    const page = S.page;
+    const isApp = S.screen === 'app';
+    const demo = S.demo;
+    const listPages = ['dashboard', 'products', 'orders'];
+    const stLoading = isApp && (demo === 'loading' || S.navLoading);
+    const stError = isApp && !stLoading && demo === 'error';
+    const stForbidden = isApp && !stLoading && demo === 'forbidden';
+    const stEmpty = isApp && !stLoading && demo === 'empty' && listPages.includes(page);
+    const stNormal = !stLoading && !stError && !stForbidden && !stEmpty;
+    const navA = p => (p === page || (p === 'products' && page === 'productForm') || (p === 'orders' && page === 'order')) ? { bg: 'var(--accent-soft)', fg: 'var(--accent-ink)' } : { bg: 'transparent', fg: 'var(--text)' };
+
+    const v = {
+      isLogin: S.screen === 'login', isApp, theme: S.theme, isDark: S.theme === 'dark', isLight: S.theme !== 'dark',
+      toggleTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+      noop: e => e.preventDefault(), stop: e => e.stopPropagation(),
+      login: S.login, pwType: S.showPw ? 'text' : 'password', pwToggleLabel: S.showPw ? 'Ukryj' : 'Pokaż',
+      togglePw: () => this.setState(s => ({ showPw: !s.showPw })),
+      loginBtn: S.login.loading ? 'Logowanie…' : 'Zaloguj się',
+      loginEmailBorder: S.login.emailErr ? 'var(--danger)' : 'var(--border)', loginPwBorder: S.login.pwErr ? 'var(--danger)' : 'var(--border)',
+      onLoginEmail: e => { const x = e.target.value; this.setState(s => ({ login: { ...s.login, email: x, emailErr: '', error: '' } })); },
+      onLoginPw: e => { const x = e.target.value; this.setState(s => ({ login: { ...s.login, password: x, pwErr: '', error: '' } })); },
+      onRemember: e => { const x = e.target.checked; this.setState(s => ({ login: { ...s.login, remember: x } })); },
+      onLogin: e => {
+        e.preventDefault(); const L = S.login;
+        const emailErr = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(L.email) ? '' : 'Podaj poprawny adres e-mail.';
+        const pwErr = L.password.length >= 6 ? '' : 'Hasło musi mieć co najmniej 6 znaków.';
+        if (emailErr || pwErr) return this.setState({ login: { ...L, emailErr, pwErr } });
+        this.setState({ login: { ...L, loading: true, error: '' } });
+        setTimeout(() => {
+          if (L.password === 'blad123') this.setState(s => ({ login: { ...s.login, loading: false, error: 'Nieprawidłowy e-mail lub hasło. Pozostały 4 próby przed czasową blokadą konta.' } }));
+          else { this.setState(s => ({ screen: 'app', login: { ...s.login, loading: false, password: '' } })); this.go('dashboard'); }
+        }, 900);
+      },
+      logout: () => this.setState({ screen: 'login' }),
+      nav: { dash: navA('dashboard'), prod: navA('products'), ord: navA('orders') },
+      goDash: e => { e && e.preventDefault && e.preventDefault(); this.setState({ demo: S.demo === 'forbidden' ? 'data' : S.demo }); this.go('dashboard'); },
+      goProducts: () => this.go('products'), goOrders: e => { e && e.preventDefault && e.preventDefault(); this.go('orders'); },
+      productCount: demo === 'empty' ? 0 : S.products.length,
+      newOrdersCount: demo === 'empty' ? 0 : S.orders.filter(o => o.status === 'NEW' || o.status === 'PAID').length,
+      gq: S.gq, onGq: e => this.setState({ gq: e.target.value }),
+      onGqKey: e => { if (e.key !== 'Enter') return; const t = S.gq.trim(); if (/^zr-?\d+/i.test(t)) { const o = S.orders.find(x => x.id.toLowerCase().includes(t.toLowerCase().replace(/^zr-?/, ''))); if (o) return this.openOrder(o); this.go('orders', { oq: t }); } else this.go('products', { q: t, pageNo: 1 }); },
+      demo, onDemo: e => this.setState({ demo: e.target.value }),
+      retry: () => { this.setState({ demo: 'data' }); this.go(page); },
+      requestAccess: () => this.showToast('Wysłano prośbę o dostęp do administratora'),
+      stLoading, stError, stForbidden, stEmpty, isDash: page === 'dashboard',
+      skeletonRows: [62, 48, 70, 40, 56, 44].map(w => ({ w })),
+      show: { dash: isApp && stNormal && page === 'dashboard', products: isApp && stNormal && page === 'products', form: isApp && stNormal && page === 'productForm', orders: isApp && stNormal && page === 'orders', order: isApp && stNormal && page === 'order' },
+      hdr: { dash: page === 'dashboard' && stNormal, products: page === 'products' && !stForbidden && !stLoading, form: page === 'productForm' && stNormal },
+      confirm: S.confirm, closeConfirm: () => this.setState({ confirm: null }), toast: S.toast,
+      newProduct: () => { this.setState({ demo: 'data' }); this.openProduct(null); },
+    };
+
+    const sec = { dashboard: 'dashboardu sprzedaży', products: 'katalogu produktów', productForm: 'edycji produktów', orders: 'zamówień', order: 'szczegółów zamówienia' }[page];
+    v.errorTitle = 'Nie udało się wczytać ' + sec;
+    v.forbiddenText = `Twoja rola nie obejmuje dostępu do ${sec}. Jeśli potrzebujesz tych uprawnień, poproś administratora sklepu o ich nadanie.`;
+    v.empty = {
+      dashboard: { title: 'Brak danych sprzedaży', text: 'Gdy sklep przyjmie pierwsze zamówienia, zobaczysz tu sprzedaż, liczbę zamówień i najpopularniejsze produkty.', cta: 'Dodaj pierwszy produkt' },
+      products: { title: 'Nie masz jeszcze produktów', text: 'Dodaj pierwszą kawę lub akcesorium. Produkt zapisany jako DRAFT nie będzie widoczny w sklepie.', cta: 'Dodaj produkt' },
+      orders: { title: 'Brak zamówień', text: 'Nowe zamówienia pojawią się tutaj automatycznie. Upewnij się, że co najmniej jeden produkt ma status ACTIVE.', cta: '' },
+    }[page] || { title: '', text: '', cta: '' };
+
+    const titles = { dashboard: 'Dashboard', products: 'Produkty', orders: 'Zamówienia' };
+    v.pageTitle = titles[page] || '';
+    v.pageSub = { dashboard: 'Poniedziałek, 2 listopada 2026', products: '', orders: '' }[page] || '';
+    v.hasBack = page === 'productForm' || page === 'order';
+    v.backLabel = page === 'order' ? 'Zamówienia' : 'Produkty';
+    v.onBack = () => this.go(page === 'order' ? 'orders' : 'products');
+    v.hdrBadge = { show: false };
+    v.dirtyShow = page === 'productForm' && S.dirty && stNormal;
+    v.screenLabel = { dashboard: '05 Dashboard', products: '02 Lista produktów', productForm: '03 Formularz produktu', orders: '04 Lista zamówień', order: '04b Szczegóły zamówienia' }[page];
+
+    // Dashboard
+    const MON = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
+    const d30 = [1820, 2140, 1960, 2480, 3120, 3460, 2210, 1890, 2050, 2330, 2760, 3380, 3610, 2040, 1930, 2290, 2510, 2870, 3540, 3920, 2380, 2110, 2240, 2620, 2990, 3710, 4080, 2560, 2290, 2470];
+    const days = d30.map((val, i) => { const d = new Date(2026, 9, 4 + i); return { val, label: `${d.getDate()} ${MON[d.getMonth()]}` }; });
+    const months = [48200, 51300, 46900, 52800, 57400, 54100, 49800, 53600, 61200, 66900, 72400, 78300].map((val, i) => ({ val, label: MON[(11 + i) % 12] + (i === 0 ? ' 25' : '') }));
+    const series = S.period === '7d' ? days.slice(-7) : S.period === '30d' ? days : months;
+    const max = Math.max(...series.map(x => x.val));
+    const rev = series.reduce((a, x) => a + x.val, 0);
+    const ordersN = Math.round(rev / (S.period === '12m' ? 124 : 121));
+    const ch = { '7d': ['+8,2%', '+5,1%', '+2,9%'], '30d': ['+12,4%', '+9,8%', '+2,4%'], '12m': ['+31,0%', '+27,3%', '+2,9%'] }[S.period];
+    v.kpis = [{ label: 'Sprzedaż', value: fmt(rev), change: ch[0] }, { label: 'Zamówienia', value: ordersN.toLocaleString('pl-PL'), change: ch[1] }, { label: 'Średnia wartość zamówienia', value: fmt(rev / ordersN), change: ch[2] }];
+    v.periodOpts = [['7d', '7 dni'], ['30d', '30 dni'], ['12m', '12 miesięcy']].map(([k, label]) => ({ label, ...pill(S.period === k), onClick: () => this.setState({ period: k, hoverBar: -1 }) }));
+    const step = series.length > 12 ? 5 : 1;
+    v.bars = series.map((x, i) => ({ h: Math.max(4, (x.val / max) * 100).toFixed(1), bg: S.hoverBar === i ? 'var(--accent)' : (S.hoverBar === -1 && i === series.length - 1 ? 'var(--accent)' : 'color-mix(in oklch, var(--accent) 45%, var(--surface2))'), label: (series.length - 1 - i) % step === 0 ? x.label : '', onHover: () => this.setState({ hoverBar: i }) }));
+    v.chartGap = series.length > 12 ? '4px' : '10px';
+    const hb = series[S.hoverBar];
+    v.chartInfo = hb ? `${hb.label}: ${fmt(hb.val)}` : `Łącznie ${fmt(rev)}`;
+    v.clearBar = () => this.setState({ hoverBar: -1 });
+    const factor = { '7d': .24, '30d': 1, '12m': 11.3 }[S.period];
+    const top = [[7, 312], [1, 268], [2, 190], [4, 174], [16, 121]].map(([id, u]) => { const p = S.products.find(x => x.id === id) || { name: '—', price: 0 }; const units = Math.round(u * factor); return { p, units, revenue: units * p.price }; });
+    const maxR = Math.max(...top.map(t => t.revenue));
+    v.topProducts = top.map((t, i) => ({ rank: i + 1, name: t.p.name, revenue: fmt(t.revenue), units: `${t.units.toLocaleString('pl-PL')} szt.`, w: ((t.revenue / maxR) * 100).toFixed(0), onOpen: () => t.p.id && this.openProduct(t.p) }));
+    v.recentOrders = S.orders.slice(0, 5).map(o => ({ id: o.id, customer: o.customer, totalF: fmt(orderTotal(o).total), badge: obadge(o.status), onOpen: () => this.openOrder(o) }));
+
+    // Products list
+    const ql = S.q.trim().toLowerCase();
+    const filtered = S.products.filter(p => (!ql || p.name.toLowerCase().includes(ql) || p.sku.toLowerCase().includes(ql)) && (S.cat === 'all' || p.cat === S.cat) && (S.status === 'all' || p.status === S.status) && (!S.lowStock || p.stock <= 10));
+    const PER = 8; const pages = Math.max(1, Math.ceil(filtered.length / PER)); const pg = Math.min(S.pageNo, pages);
+    const pageItems = filtered.slice((pg - 1) * PER, pg * PER);
+    v.q = S.q; v.cat = S.cat;
+    v.onQ = e => this.setState({ q: e.target.value, pageNo: 1 });
+    v.onCat = e => this.setState({ cat: e.target.value, pageNo: 1 });
+    v.statusOpts = [['all', 'Wszystkie'], ['ACTIVE', 'ACTIVE'], ['DRAFT', 'DRAFT'], ['ARCHIVED', 'ARCHIVED']].map(([k, label]) => ({ label, ...pill(S.status === k), onClick: () => this.setState({ status: k, pageNo: 1 }) }));
+    v.lowChip = S.lowStock ? { border: 'var(--accent)', bg: 'var(--accent-soft)', fg: 'var(--accent-ink)' } : { border: 'var(--border)', bg: 'var(--surface)', fg: 'var(--text)' };
+    v.toggleLow = () => this.setState(s => ({ lowStock: !s.lowStock, pageNo: 1 }));
+    v.filtersActive = !!(ql || S.cat !== 'all' || S.status !== 'all' || S.lowStock);
+    v.clearFilters = () => this.setState({ q: '', cat: 'all', status: 'all', lowStock: false, pageNo: 1 });
+    const sel = S.selected;
+    v.rows = pageItems.map(p => ({
+      ...p, initials: p.name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase(), priceF: fmt(p.price), badge: PB[p.status], checked: !!sel[p.id],
+      rowBg: sel[p.id] ? 'var(--accent-soft)' : 'transparent',
+      stockLabel: p.stock === 0 ? 'Brak' : p.stock <= 10 ? `${p.stock} szt. · niski` : `${p.stock} szt.`,
+      stockColor: p.stock === 0 ? 'var(--danger)' : p.stock <= 10 ? 'var(--warn)' : 'var(--text)', stockWeight: p.stock <= 10 ? 600 : 400,
+      onCheck: e => { const c = e.target.checked; this.setState(s => ({ selected: { ...s.selected, [p.id]: c } })); },
+      onOpen: () => this.openProduct(p),
+    }));
+    v.noResults = filtered.length === 0;
+    v.allChecked = pageItems.length > 0 && pageItems.every(p => sel[p.id]);
+    v.onCheckAll = e => { const c = e.target.checked; this.setState(s => { const n = { ...s.selected }; pageItems.forEach(p => n[p.id] = c); return { selected: n }; }); };
+    const selIds = Object.keys(sel).filter(k => sel[k]).map(Number);
+    v.selCount = selIds.length;
+    const bulk = st => () => { this.setState(s => ({ products: s.products.map(p => selIds.includes(p.id) ? { ...p, status: st } : p), selected: {} })); this.showToast(`Zmieniono status ${selIds.length} produktów na ${st}`); };
+    v.bulkActive = bulk('ACTIVE'); v.bulkDraft = bulk('DRAFT'); v.bulkArchive = bulk('ARCHIVED');
+    v.bulkDelete = () => this.setState({ confirm: { title: `Usunąć ${selIds.length} produktów?`, text: 'Produkty zostaną trwale usunięte wraz z wariantami i zdjęciami. Historia zamówień pozostanie bez zmian. Tej operacji nie można cofnąć.', cta: 'Usuń produkty', onOk: () => { this.setState(s => ({ products: s.products.filter(p => !selIds.includes(p.id)), selected: {}, confirm: null })); this.showToast(`Usunięto ${selIds.length} produktów`); } } });
+    v.clearSel = () => this.setState({ selected: {} });
+    v.rangeLabel = filtered.length ? `${(pg - 1) * PER + 1}–${Math.min(pg * PER, filtered.length)} z ${filtered.length} produktów` : '0 produktów';
+    v.pageBtns = Array.from({ length: pages }, (_, i) => ({ n: i + 1, border: i + 1 === pg ? 'var(--accent)' : 'var(--border)', bg: i + 1 === pg ? 'var(--accent-soft)' : 'var(--surface)', fg: i + 1 === pg ? 'var(--accent-ink)' : 'var(--text)', onClick: () => this.setState({ pageNo: i + 1 }) }));
+    v.prevDisabled = pg <= 1; v.nextDisabled = pg >= pages; v.prevOpacity = pg <= 1 ? .4 : 1; v.nextOpacity = pg >= pages ? .4 : 1;
+    v.prevPage = () => this.setState({ pageNo: Math.max(1, pg - 1) }); v.nextPage = () => this.setState({ pageNo: Math.min(pages, pg + 1) });
+
+    // Product form
+    const f = S.form;
+    if (f) {
+      if (page === 'productForm') { v.pageTitle = f.name || 'Nowy produkt'; v.hdrBadge = { show: true, label: f.status, ...PB[f.status] }; v.pageSub = f.id ? `${f.sku} · ostatnia zmiana 28.10.2026, Anna Kowalczyk` : 'Uzupełnij dane i zapisz jako DRAFT lub ACTIVE.'; }
+      const fe = S.fErr; const badV = fe.badV || [];
+      v.form = f; v.fErr = { name: fe.name || '', nameBorder: fe.name ? 'var(--danger)' : 'var(--border)', variants: fe.variants || '' };
+      v.saveProduct = () => this.saveProduct();
+      v.on = { name: this.setF('name'), desc: this.setF('desc'), sku: this.setF('sku'), status: this.setF('status'), category: this.setF('category'), country: this.setO('country'), region: this.setO('region'), altitude: this.setO('altitude'), process: this.setO('process'), seoTitle: this.setSeo('title'), slug: this.setSeo('slug'), seoDesc: this.setSeo('desc') };
+      v.isCoffee = f.category === 'Kawa';
+      v.roastOpts = ['Jasny', 'Średni', 'Ciemny'].map(r => ({ label: r, ...pill(f.roast === r), onClick: () => this.setForm(x => ({ ...x, roast: r })) }));
+      v.tagList = f.notes.map(t => ({ label: t, onRemove: () => this.setForm(x => ({ ...x, notes: x.notes.filter(n => n !== t) })) }));
+      v.tagDraft = S.tagDraft; v.onTagDraft = e => { const x = e.target.value; if (x.endsWith(',')) this.addTag(x.slice(0, -1)); else this.setState({ tagDraft: x }); };
+      v.onTagKey = e => { if (e.key === 'Enter') { e.preventDefault(); this.addTag(S.tagDraft); } else if (e.key === 'Backspace' && !S.tagDraft && f.notes.length) this.setForm(x => ({ ...x, notes: x.notes.slice(0, -1) })); };
+      v.noteSuggest = ['czekolada', 'karmel', 'owoce cytrusowe', 'czerwone owoce', 'orzechy', 'kwiaty'].filter(n => !f.notes.includes(n)).slice(0, 5).map(n => ({ label: n, onAdd: () => this.addTag(n) }));
+      v.methodOpts = ['Espresso', 'Przelew', 'Aeropress', 'French press', 'Moka', 'Cold brew'].map(m => { const on = f.methods.includes(m); return { label: m, on, mark: on ? '✓' : '+', border: on ? 'var(--accent)' : 'var(--border)', bg: on ? 'var(--accent-soft)' : 'var(--surface)', fg: on ? 'var(--accent-ink)' : 'var(--text)', onClick: () => this.setForm(x => ({ ...x, methods: on ? x.methods.filter(y => y !== m) : [...x.methods, m] })) }; });
+      const updV = (id, k) => e => { const val = e.target.value; this.setForm(x => ({ ...x, variants: x.variants.map(vv => vv.id === id ? { ...vv, [k]: val } : vv) })); };
+      v.varRows = f.variants.map(vv => ({ ...vv, onName: updV(vv.id, 'name'), onSku: updV(vv.id, 'sku'), onPrice: updV(vv.id, 'price'), onStock: updV(vv.id, 'stock'), nameBorder: badV.includes(vv.id) && !vv.name.trim() ? 'var(--danger)' : 'var(--border)', priceBorder: badV.includes(vv.id) && !(parseFloat(String(vv.price).replace(',', '.')) > 0) ? 'var(--danger)' : 'var(--border)', onDel: () => this.setForm(x => ({ ...x, variants: x.variants.filter(y => y.id !== vv.id) })) }));
+      v.noVariants = f.variants.length === 0;
+      v.addVariant = () => this.setForm(x => ({ ...x, variants: [...x.variants, { id: 'v' + Date.now(), name: '', sku: (x.sku || 'SKU') + '-' + (x.variants.length + 1), price: '', stock: '0' }] }));
+      const prices = f.variants.map(x => parseFloat(String(x.price).replace(',', '.'))).filter(x => x > 0);
+      const stockSum = f.variants.reduce((a, x) => a + (parseInt(x.stock) || 0), 0);
+      v.varSummary = `${f.variants.length} wariant${f.variants.length === 1 ? '' : f.variants.length < 5 && f.variants.length > 1 ? 'y' : 'ów'} · łącznie ${stockSum} szt.`;
+      v.summary = { price: prices.length ? fmt(Math.min(...prices)) : '—', stock: `${stockSum} szt.`, variants: f.variants.length, images: f.images.length };
+      v.galTiles = f.images.map((im, i) => ({
+        ...im, num: String(i + 1).padStart(2, '0'), isMain: i === 0,
+        outline: S.overId === im.id && S.dragId !== im.id ? '2px solid var(--accent)' : '2px solid transparent', opacity: S.dragId === im.id ? .4 : 1,
+        onDragStart: e => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', im.id); this.setState({ dragId: im.id }); },
+        onDragOver: e => { e.preventDefault(); if (S.overId !== im.id) this.setState({ overId: im.id }); },
+        onDrop: e => { e.preventDefault(); const from = this.state.dragId; this.setState({ dragId: null, overId: null }); if (!from || from === im.id) return; this.setForm(x => { const arr = [...x.images]; const fi = arr.findIndex(a => a.id === from); const [m] = arr.splice(fi, 1); const ti = arr.findIndex(a => a.id === im.id); arr.splice(fi <= ti ? ti + 1 : ti, 0, m); return { ...x, images: arr }; }); },
+        onDragEnd: () => this.setState({ dragId: null, overId: null }),
+        onRemove: e => { e.stopPropagation(); this.setForm(x => ({ ...x, images: x.images.filter(a => a.id !== im.id) })); },
+      }));
+      const tones = ['#8A5A3C', '#6F4A33', '#A0614A', '#5C3D2B', '#7D8A93'];
+      v.addImage = () => this.setForm(x => ({ ...x, images: [...x.images, { id: 'i' + Date.now(), label: 'nowe-zdjecie', tone: tones[x.images.length % tones.length] }] }));
+      const tl = (f.seo.title || '').length, dl = (f.seo.desc || '').length;
+      v.seo = { titleCount: `${tl}/60`, titleColor: tl > 60 ? 'var(--danger)' : 'var(--muted)', descCount: `${dl}/160`, descColor: dl > 160 ? 'var(--danger)' : 'var(--muted)', titlePh: (f.name || 'Nazwa produktu') + ' | Ziarnista', url: 'ziarnista.pl › produkt › ' + (f.seo.slug || '…'), prevTitle: f.seo.title || ((f.name || 'Nazwa produktu') + ' | Ziarnista'), prevDesc: f.seo.desc || f.desc || 'Dodaj meta opis, aby kontrolować tekst widoczny w wynikach wyszukiwania.' };
+    }
+
+    // Orders
+    const oql = S.oq.trim().toLowerCase();
+    const oMatch = S.orders.filter(o => !oql || o.id.toLowerCase().includes(oql) || o.customer.toLowerCase().includes(oql) || o.email.includes(oql));
+    v.oq = S.oq; v.onOq = e => this.setState({ oq: e.target.value });
+    v.oTabs = [['all', 'Wszystkie'], ...Object.keys(OS).map(k => [k, OS[k][0]])].map(([k, label]) => ({ label, count: k === 'all' ? oMatch.length : oMatch.filter(o => o.status === k).length, line: S.ostatus === k ? 'var(--accent)' : 'transparent', fg: S.ostatus === k ? 'var(--text)' : 'var(--muted)', onClick: () => this.setState({ ostatus: k }) }));
+    const oList = oMatch.filter(o => S.ostatus === 'all' || o.status === S.ostatus);
+    v.orderRows = oList.map(o => ({ ...o, itemsCount: o.items.reduce((a, i) => a + i.qty, 0), totalF: fmt(orderTotal(o).total), badge: obadge(o.status), onOpen: () => this.openOrder(o) }));
+    v.noOrderResults = oList.length === 0;
+
+    const od = S.orders.find(o => o.id === S.orderId);
+    if (od) {
+      const t = orderTotal(od);
+      const FLOW = ['NEW', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+      const fi = FLOW.indexOf(od.status);
+      const next = fi >= 0 && fi < 4 ? FLOW[fi + 1] : null;
+      if (page === 'order') { v.pageTitle = 'Zamówienie ' + od.id; v.hdrBadge = { show: true, ...obadge(od.status) }; v.pageSub = `Złożone ${od.date}, ${od.time} · ${od.items.reduce((a, i) => a + i.qty, 0)} szt. · ${fmt(t.total)}`; }
+      const hist = [...od.history].reverse();
+      v.od = {
+        ...od, subtotalF: fmt(t.sub), shippingF: t.ship ? fmt(t.ship) : 'Gratis', totalF: fmt(t.total), next: next ? OS[next][0] : '',
+        payState: od.status === 'NEW' ? 'oczekuje na płatność' : od.status === 'CANCELLED' ? 'zwrot zlecony' : 'opłacono', payColor: od.status === 'NEW' ? 'var(--warn)' : od.status === 'CANCELLED' ? 'var(--danger)' : 'var(--ok)',
+        items: od.items.map(i => ({ ...i, priceF: fmt(i.price), lineF: fmt(i.price * i.qty) })),
+        history: hist.map((h, i) => ({ ...h, label: OS[h.status][0], dot: i === 0 ? obadge(h.status).fg : 'var(--border-strong)', line: i === hist.length - 1 ? 'none' : 'block' })),
+      };
+      v.applyNext = () => next && this.setOrderStatus(next);
+      v.statusSelect = Object.keys(OS).map(k => ({ value: k, label: OS[k][0] + (k === od.status ? ' (obecny)' : '') }));
+      v.newStatus = S.newStatus || od.status; v.onNewStatus = e => this.setState({ newStatus: e.target.value });
+      v.statusNote = S.statusNote; v.onNote = e => this.setState({ statusNote: e.target.value });
+      v.notify = S.notify; v.onNotify = e => this.setState({ notify: e.target.checked });
+      v.applyDisabled = v.newStatus === od.status; v.applyOpacity = v.applyDisabled ? .5 : 1;
+      v.applyStatus = () => {
+        const ns = v.newStatus; if (ns === od.status) return;
+        if (ns === 'CANCELLED') this.setState({ confirm: { title: `Anulować zamówienie ${od.id}?`, text: 'Rezerwacja towaru zostanie zwolniona, a płatność zwrócona klientowi.', cta: 'Anuluj zamówienie', onOk: () => { this.setState({ confirm: null }); this.setOrderStatus('CANCELLED'); } } });
+        else this.setOrderStatus(ns);
+      };
+    }
+    return v;
+  }
+}
+</script>
+</body>
+</html>
