@@ -1,7 +1,8 @@
 # Design system — analiza i plan (Faza 3.2)
 
 Źródło: projekt „Panel administracyjny Ziarnista” w Claude Design, plik `Ziarnista Admin.dc.html`
-(`support.js` to tylko runtime prototypu, nie zawiera decyzji projektowych).
+(`support.js` to tylko runtime prototypu, nie zawiera decyzji projektowych). Kopia pliku:
+`docs/design/ziarnista-admin.dc.html`.
 
 Status: **zaakceptowany**. Wdrażany krokami z sekcji 5.6.
 
