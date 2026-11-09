@@ -9,7 +9,7 @@
     "noEmit": true,
     "declaration": false,
     "declarationMap": false,
-    "types": ["node"]
+    "types": ["node", "vite/client"]
   },
-  "include": ["src"]
+  "include": ["src", ".storybook/*", "vitest.config.ts"]
 }
