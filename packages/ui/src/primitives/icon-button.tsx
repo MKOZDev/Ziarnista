@@ -26,6 +26,10 @@ export const iconButtonVariants = cva(
   },
 );
 
+// For aria-disabled buttons that must keep keyboard focus; the ! outweighs the hover colors
+export const UNAVAILABLE_ICON_BUTTON =
+  'aria-disabled:cursor-not-allowed aria-disabled:bg-card! aria-disabled:text-muted-foreground! aria-disabled:opacity-50';
+
 export type IconButtonProps = ComponentProps<'button'> &
   VariantProps<typeof iconButtonVariants> & {
     // Required: an icon alone gives assistive technology nothing to announce

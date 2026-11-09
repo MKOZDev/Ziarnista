@@ -5,7 +5,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '../lib/cn';
 import { getPageItems } from '../lib/pagination';
 import { Button } from './button';
-import { IconButton } from './icon-button';
+import { IconButton, UNAVAILABLE_ICON_BUTTON } from './icon-button';
 
 export type PaginationProps = Omit<ComponentProps<'div'>, 'onChange'> & {
   page: number;
@@ -28,7 +28,7 @@ function StepButton({ label, isUnavailable, onStep, children }: StepButtonProps)
       aria-label={label}
       // aria-disabled, not disabled: reaching the last page must not drop keyboard focus
       aria-disabled={isUnavailable || undefined}
-      className="aria-disabled:cursor-not-allowed aria-disabled:bg-card! aria-disabled:text-muted-foreground! aria-disabled:opacity-50"
+      className={UNAVAILABLE_ICON_BUTTON}
       onClick={isUnavailable ? undefined : onStep}
     >
       {children}
