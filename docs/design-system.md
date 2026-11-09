@@ -376,8 +376,9 @@ Zasady:
 
 ### 5.5 Podział pracy
 
-**A. Piszesz sam.** Najpierw przygotowuję stories z funkcjami `play` jako testy akceptacyjne, które
-na początku nie przechodzą. Potem Ty piszesz implementację, a ja robię review.
+**A. Najpierw testy akceptacyjne.** Stories z funkcjami `play` powstają przed implementacją i na
+początku nie przechodzą. Decyzja zmieniona po kroku 5: te trzy komponenty implementuje Claude, a
+właściciel sprawdza je ręcznie.
 
 | Komponent     | Dlaczego warto                                              | Kryteria akceptacji (skrót)                                                                                                                     |
 | ------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -424,21 +425,21 @@ EmptyState, ErrorState, ForbiddenState, LoadingState, AuthCard.
 Każdy krok to jedna spójna zmiana z testami. Komponenty z każdego kroku opierają się na
 wcześniejszych.
 
-| Krok | Zakres                                                                                                       | Autor           |
-| ---- | ------------------------------------------------------------------------------------------------------------ | --------------- |
-| 1    | Szkielet paczki, tokeny, motyw, test kontrastu, podłączenie panelu i sklepu                                  | Claude          |
-| 2    | Storybook, axe, Vitest w przeglądarce, integracja z `pnpm test` i Turbo                                      | Claude          |
-| 3    | Button, IconButton, TextLink, Badge, Skeleton, Card, Avatar, Alert                                           | Claude          |
-| 4    | Field, Input, InputGroup, Textarea, Select, Checkbox, MoneyInput                                             | Claude          |
-| 5    | CountBadge, ToggleChip, SegmentedControl, Tabs, Tooltip, Pagination                                          | Claude          |
-| 6    | **Modal** + ConfirmDialog na jego bazie                                                                      | **Ty**          |
-| 7    | Toast                                                                                                        | Claude          |
-| 8    | **Combobox**                                                                                                 | **Ty**          |
-| 9    | TagInput                                                                                                     | Claude          |
-| 10   | **DataTable** + Thumbnail, BulkActionBar                                                                     | **Ty** / Claude |
-| 11   | ImageUploader                                                                                                | Claude          |
-| 12   | EmptyState, ErrorState, ForbiddenState, LoadingState, StatCard, BarChart, ProgressBar, SummaryList, Timeline | Claude          |
-| 13   | AppShell, Sidebar, Topbar, PageHeader, FormSection, AuthCard                                                 | Claude          |
+| Krok | Zakres                                                                                                       | Autor  |
+| ---- | ------------------------------------------------------------------------------------------------------------ | ------ |
+| 1    | Szkielet paczki, tokeny, motyw, test kontrastu, podłączenie panelu i sklepu                                  | Claude |
+| 2    | Storybook, axe, Vitest w przeglądarce, integracja z `pnpm test` i Turbo                                      | Claude |
+| 3    | Button, IconButton, TextLink, Badge, Skeleton, Card, Avatar, Alert                                           | Claude |
+| 4    | Field, Input, InputGroup, Textarea, Select, Checkbox, MoneyInput                                             | Claude |
+| 5    | CountBadge, ToggleChip, SegmentedControl, Tabs, Tooltip, Pagination                                          | Claude |
+| 6    | **Modal** + ConfirmDialog na jego bazie                                                                      | Claude |
+| 7    | Toast                                                                                                        | Claude |
+| 8    | **Combobox**                                                                                                 | Claude |
+| 9    | TagInput                                                                                                     | Claude |
+| 10   | **DataTable** + Thumbnail, BulkActionBar                                                                     | Claude |
+| 11   | ImageUploader                                                                                                | Claude |
+| 12   | EmptyState, ErrorState, ForbiddenState, LoadingState, StatCard, BarChart, ProgressBar, SummaryList, Timeline | Claude |
+| 13   | AppShell, Sidebar, Topbar, PageHeader, FormSection, AuthCard                                                 | Claude |
 
 Osobne kroki poza design systemem: filtr `lowStock` w API (przed ekranem listy produktów) oraz
 responsywność panelu poniżej 1024 px (na koniec Fazy 3).

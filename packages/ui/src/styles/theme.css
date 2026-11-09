@@ -111,6 +111,11 @@
     outline-offset: 2px;
   }
 
+  /* In CSS, so the lock cannot outlive the dialog however it gets closed or removed */
+  html:has(dialog:modal) {
+    overflow: hidden;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,
