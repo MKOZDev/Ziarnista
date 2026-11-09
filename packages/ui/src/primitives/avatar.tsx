@@ -1,14 +1,6 @@
 import type { ComponentProps } from 'react';
 import { cn } from '../lib/cn';
-
-function getInitials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => Array.from(word)[0]?.toLocaleUpperCase('pl') ?? '')
-    .join('');
-}
+import { getInitials } from '../lib/initials';
 
 export type AvatarProps = Omit<ComponentProps<'span'>, 'children'> & {
   name: string;
