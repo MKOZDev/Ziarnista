@@ -350,7 +350,7 @@ bo tam ręczna implementacja nic by nie wniosła, a podniosła ryzyko”.
 
 Paczki `radix-ui`, `class-variance-authority`, `cn` i `lucide-react` przeniosły się z `apps/admin`
 do `packages/ui` (`lucide-react` jest też nadal w panelu, bo używa go bezpośrednio). `tw-animate-css`
-zostaje w panelu do kroku 5, bo potrzebuje go dopiero pierwszy animowany komponent Radixa.
+zostaje w panelu do kroku 7: Tooltip nie ma animacji, a pierwszym animowanym komponentem będzie Toast.
 
 ### 5.4 Storybook i testy
 
