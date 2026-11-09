@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { cn } from '../lib/cn';
 import { PortalContainerProvider } from '../lib/portal-container';
+import { pushToastHost } from '../lib/toast-store';
 
 export type ModalProps = {
   open: boolean;
@@ -51,7 +52,11 @@ export function Modal({
     if (!dialog || !open) return;
     dialog.showModal();
     initialFocusRef?.current?.focus();
-    return () => dialog.close();
+    const releaseToastHost = pushToastHost(dialog);
+    return () => {
+      releaseToastHost();
+      dialog.close();
+    };
   }, [dialog, open, initialFocusRef]);
 
   function handleCancel(event: SyntheticEvent<HTMLDialogElement>) {
