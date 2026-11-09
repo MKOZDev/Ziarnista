@@ -285,8 +285,7 @@ packages/ui/
     styles/sources.css           # @source: gdzie Tailwind ma szukać klas komponentów
     styles/contrast.test.ts      # WCAG: oba motywy panelu i sklep
     lib/cn.ts             # cn znający własne skale z theme.css
-    primitives/           # button.tsx, input.tsx, modal.tsx, combobox.tsx, ...
-    sections/             # sidebar.tsx, page-header.tsx, ...
+    primitives/           # button.tsx, input.tsx, modal.tsx, combobox.tsx, sidebar.tsx, ...
 ```
 
 - **Paczka wewnętrzna bez kroku budowania.** `exports` wskazuje na źródła, Next.js kompiluje je
@@ -294,6 +293,8 @@ packages/ui/
   bez korzyści, skoro paczki nie publikujemy.
 - **Importy per komponent** (`@ziarnista/ui/button`), bez jednego `index.ts`. Dzięki temu
   komponent kliencki z `'use client'` nie trafia do Server Components przez wspólny barrel.
+- **Płaski katalog `primitives/`.** Wszystkie komponenty leżą razem, a podział widać w Storybooku
+  (`Primitives`, `Composites`, `Sections`), dzięki czemu wystarcza jeden wzorzec `exports`.
 - **Sekcje bez zależności od Next.js.** `Sidebar` i `Topbar` przyjmują linki przez `asChild`,
   dzięki czemu działają w Storybooku.
 
