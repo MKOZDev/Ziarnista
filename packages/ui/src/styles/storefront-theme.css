@@ -1,0 +1,19 @@
+/*
+ * Storefront brand: overrides the shared tokens, components stay unchanged.
+ * Import after tokens.css and theme.css. Light theme only.
+ */
+
+:root {
+  --background: #f6f1ea;
+
+  --primary: #b84a33;
+  --primary-hover: #a8432d;
+  --ring: #b84a33;
+
+  /* Decorative only: 2.67:1 on the cream background, never use it for text */
+  --sage: #8a9a7b;
+}
+
+@theme inline {
+  --color-sage: var(--sage);
+}

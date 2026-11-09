@@ -98,13 +98,14 @@ Zasady:
 ### Sklep
 
 - Ciepły, minimalistyczny, magazynowy
-- Kolory: tło `#F6F1EA` (krem), tekst `#2B1D14` (espresso), akcent `#C8553D` (terakota), dodatkowy `#8A9A7B` (szałwia)
+- Kolory: tło `#F6F1EA` (krem), tekst `#2B1D14` (espresso), akcent `#B84A33` (terakota przyciemniona do WCAG AA), `#8A9A7B` (szałwia) tylko dekoracyjnie
 - Fonty: Fraunces (nagłówki), Inter (treść)
 - Duże zdjęcia, dużo przestrzeni, nuty smakowe jako kolorowe „pigułki"
 
 ### Panel
 
-- Neutralny, czytelny, shadcn/ui, jasny i ciemny motyw
+- Ciepły, czytelny, jasny i ciemny motyw; akcent `#BC4D36` w jasnym, `#D8674E` w ciemnym
+- Paczka `packages/ui` oparta na Radix i shadcn/ui; pełna paleta i skale w `docs/design-system.md`
 
 ## 6. Fazy
 

@@ -27,6 +27,7 @@ Pełna specyfikacja: @docs/SPEC.md — przeczytaj ją przed większymi zmianami.
 - `apps/admin` — Next.js, panel
 - `apps/api` — NestJS, REST API
 - `packages/shared` — typy i schematy Zod współdzielone przez aplikacje
+- `packages/ui` — design system: tokeny, motyw Tailwinda, komponenty (`docs/design-system.md`)
 - `docs/` — dokumentacja
 
 ## Konwencje kodu
