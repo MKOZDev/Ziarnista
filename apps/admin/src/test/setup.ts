@@ -2,12 +2,13 @@ import '@testing-library/jest-dom/vitest';
 import { clearToasts } from '@ziarnista/ui/toast';
 import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
-import { navigation } from './navigation';
+import { navigation, useTestSearchParams } from './navigation';
 import { server } from './server';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => navigation.router,
   usePathname: () => navigation.pathname,
+  useSearchParams: useTestSearchParams,
 }));
 
 // Node's Request rejects relative URLs, which browsers resolve against the page.
@@ -42,8 +43,7 @@ afterEach(() => {
   cleanup();
   server.resetHandlers();
   clearToasts();
-  navigation.pathname = '/';
-  navigation.router.replace.mockClear();
+  navigation.reset();
   window.history.replaceState(null, '', '/');
   localStorage.clear();
   document.documentElement.className = '';

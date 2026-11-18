@@ -18,6 +18,19 @@ Szczegóły, które łatwo przeoczyć:
 - **Motyw nie jest w Reduksie**, bo jego źródłem jest klasa `.dark` na `<html>`, ustawiana przez skrypt jeszcze przed załadowaniem Reacta. `useSyncExternalStore` jest przeznaczony właśnie do subskrypcji stanu spoza Reacta.
 - **Slice jest celowo mały.** Nowe pola dodajemy dopiero, gdy stan UI musi być dostępny z kilku niezależnych miejsc i nie pasuje do URL-a.
 
+### Stan listy w URL (produkty)
+
+`useProductListParams` czyta i zmienia stan listy wyłącznie przez URL. Czyste funkcje są w `product-list-params.ts`.
+
+- **Walidacja schematem z `shared`, parametr po parametrze.** Każdy parametr sprawdza część `adminProductListQuerySchema`. Nieprawidłowy (np. `status=PUBLISHED` z literówki) wraca do wartości domyślnej, a reszta działa. Cała lista nie kończy się błędem.
+- **Wartości domyślne nie trafiają do URL-a.** Jeden widok ma jeden adres. Ten sam serializer buduje zapytanie do API, bo API stosuje te same wartości domyślne.
+- **Zmiana czegokolwiek poza stroną wraca na stronę 1.**
+- **`push` dla świadomych kroków** (filtr, strona, sortowanie), żeby „wstecz” je cofał. **`replace` dla wyszukiwania**, żeby każda pauza w pisaniu nie dodawała kroku w historii.
+- **Wyszukiwanie z debounce 300 ms.** Pole ma własny stan i synchronizuje się z URL-em w obie strony. Zmiana URL-a z zewnątrz („Wyczyść filtry”, „wstecz”) aktualizuje pole, a stara wartość z debounce nie wraca do adresu.
+- **Sortowalne są tylko nagłówki, które mają odpowiednik w API** (nazwa, cena, w obie strony). „Ostatnio zmienione” i „Najnowsze” są tylko w selekcie sortowania.
+
+W testach `next/navigation` jest zastąpione mockiem (`src/test/navigation.ts`). `push` i `replace` zmieniają w nim query string, a `useSearchParams` re-renderuje komponenty, tak jak router Nexta.
+
 ## 2. Tagi RTK Query
 
 Tagi: `Product`, `Category`, `Origin`, `Order`. Zapytania deklarują, jakie dane dostarczają, a mutacje, co zmieniają.
