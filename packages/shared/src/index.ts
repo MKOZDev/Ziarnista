@@ -1,5 +1,6 @@
 export * from './schemas/admin-catalog';
 export * from './schemas/admin-products';
+export * from './schemas/api-error';
 export * from './schemas/auth';
 export * from './schemas/cart';
 export * from './schemas/catalog';

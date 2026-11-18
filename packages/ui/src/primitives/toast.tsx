@@ -12,7 +12,7 @@ import {
   type ToastItem,
 } from '../lib/toast-store';
 
-export { toast } from '../lib/toast-store';
+export { clearToasts, toast } from '../lib/toast-store';
 
 // The rest waits in the queue, so a burst of errors cannot cover the page
 const MAX_VISIBLE_TOASTS = 3;
