@@ -1,8 +1,9 @@
 import { combineSlices, configureStore } from '@reduxjs/toolkit';
 import { baseApi } from './base-api';
+import { productSelectionSlice } from '@/features/products/product-selection-slice';
 import { sessionSlice } from './session-slice';
 
-const rootReducer = combineSlices(baseApi, sessionSlice);
+const rootReducer = combineSlices(baseApi, sessionSlice, productSelectionSlice);
 
 /** A function, not a singleton: on the server a shared store would leak data between requests. */
 export function makeStore() {

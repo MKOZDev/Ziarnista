@@ -25,6 +25,20 @@ globalThis.Request = class extends NativeRequest {
   }
 };
 
+// jsdom has no modal <dialog>: open and close are enough for the panel's Modal
+if (!('showModal' in HTMLDialogElement.prototype)) {
+  Object.assign(HTMLDialogElement.prototype, {
+    showModal(this: HTMLDialogElement) {
+      this.open = true;
+    },
+    close(this: HTMLDialogElement) {
+      if (!this.open) return;
+      this.open = false;
+      this.dispatchEvent(new Event('close'));
+    },
+  });
+}
+
 beforeAll(() => {
   server.listen({ onUnhandledFrame: 'error' });
 });

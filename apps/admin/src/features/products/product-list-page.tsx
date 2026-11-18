@@ -6,10 +6,11 @@ import type { DataTableProps } from '@ziarnista/ui/data-table';
 import { EmptyState } from '@ziarnista/ui/empty-state';
 import { PageHeader } from '@ziarnista/ui/page-header';
 import { Pagination } from '@ziarnista/ui/pagination';
-import type { AdminProductListResponse } from '@ziarnista/shared';
+import type { AdminProductListItem, AdminProductListResponse } from '@ziarnista/shared';
 import { Plus, SearchX } from 'lucide-react';
 import Link from 'next/link';
 import { ApiErrorState } from '@/components/api-error-state';
+import { ProductBulkActions } from './product-bulk-actions';
 import { ProductListFilters } from './product-list-filters';
 import {
   clearedFilters,
@@ -21,6 +22,9 @@ import {
 import { ProductTable } from './product-table';
 import { useGetProductsQuery } from './products-api';
 import { useProductListParams } from './use-product-list-params';
+import { useProductSelection } from './use-product-selection';
+
+const EMPTY_ROWS: AdminProductListItem[] = [];
 
 type TableStatus = NonNullable<DataTableProps<unknown>['status']>;
 
@@ -105,6 +109,8 @@ export function ProductListPage() {
   const { params, setParams } = useProductListParams();
   const query = useGetProductsQuery(params);
   const { data, error, refetch } = query;
+  const rows = data?.items ?? EMPTY_ROWS;
+  const selection = useProductSelection(params, rows);
 
   return (
     <div className="flex flex-col gap-6">
@@ -120,9 +126,19 @@ export function ProductListPage() {
         }
       />
       <ProductListFilters params={params} onChange={setParams} />
-      <Card padding="none">
+      <Card padding="none" className="overflow-hidden">
+        <ProductBulkActions
+          selection={selection.items}
+          onOtherPages={selection.onOtherPages}
+          onClear={selection.clear}
+        />
         <ProductTable
-          rows={data?.items ?? []}
+          rows={rows}
+          selection={{
+            selectedIds: selection.selectedIds,
+            onSelectedIdsChange: selection.setSelectedIds,
+            getRowLabel: (product) => product.name,
+          }}
           status={tableStatus(query)}
           sort={sortToColumn(params.sort)}
           onSortChange={(sort) => setParams({ sort: columnToSort(sort) })}

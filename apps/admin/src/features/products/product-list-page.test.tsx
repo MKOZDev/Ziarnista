@@ -1,61 +1,12 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type {
-  AdminCategory,
-  AdminProductListItem,
-  AdminProductListResponse,
-} from '@ziarnista/shared';
 import { http, HttpResponse } from 'msw/http';
 import { describe, expect, it } from 'vitest';
 import { navigation } from '@/test/navigation';
+import { categories, KAWA_ID, page, product, serveProducts } from '@/test/product-fixtures';
 import { renderWithProviders } from '@/test/render';
 import { API, server } from '@/test/server';
 import { ProductListPage } from './product-list-page';
-
-const KAWA_ID = '01923456-789a-7bcd-8ef0-000000000001';
-
-const categories: AdminCategory[] = [
-  { id: KAWA_ID, name: 'Kawa', slug: 'kawa', parentId: null, productCount: 2, childCount: 0 },
-];
-
-let nextId = 1;
-function product(overrides: Partial<AdminProductListItem> = {}): AdminProductListItem {
-  const id = `01923456-789a-7bcd-8ef0-${String(nextId++).padStart(12, '0')}`;
-  return {
-    id,
-    kind: 'COFFEE',
-    status: 'ACTIVE',
-    name: 'Etiopia Guji',
-    slug: 'etiopia-guji',
-    category: { id: KAWA_ID, name: 'Kawa' },
-    minPrice: 4900,
-    variantCount: 2,
-    activeVariantCount: 2,
-    totalStock: 25,
-    hasLowStock: false,
-    image: null,
-    updatedAt: '2026-11-18T10:00:00.000Z',
-    ...overrides,
-  };
-}
-
-function page(items: AdminProductListItem[], overrides: Partial<AdminProductListResponse> = {}) {
-  return { items, page: 1, pageSize: 20, total: items.length, totalPages: 1, ...overrides };
-}
-
-/** Serves the list and records the query string of every list request */
-function serveProducts(respond: (search: URLSearchParams) => AdminProductListResponse) {
-  const requests: URLSearchParams[] = [];
-  server.use(
-    http.get(`${API}/admin/categories`, () => HttpResponse.json(categories)),
-    http.get(`${API}/admin/products`, ({ request }) => {
-      const search = new URL(request.url).searchParams;
-      requests.push(search);
-      return HttpResponse.json(respond(search));
-    }),
-  );
-  return requests;
-}
 
 function renderList(url = '/products') {
   navigation.setUrl(url);

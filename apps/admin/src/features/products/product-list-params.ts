@@ -60,6 +60,14 @@ export function nextProductListParams(
   return { ...params, page: DEFAULTS.page, ...change };
 }
 
+/**
+ * What the selection belongs to: filters, search and sort, but not the page. A product chosen
+ * on page 1 stays chosen on page 2; one chosen under other filters is no longer on this list.
+ */
+export function selectionScope(params: ProductListParams): string {
+  return serializeProductListParams({ ...params, page: DEFAULTS.page }).toString();
+}
+
 export function clearedFilters(): Partial<ProductListParams> {
   return Object.fromEntries(FILTER_KEYS.map((key) => [key, undefined]));
 }
