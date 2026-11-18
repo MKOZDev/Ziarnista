@@ -4,11 +4,9 @@ import { validationError } from '../../common/validation-error';
 import { ProductStatus } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AdminProductsService } from './admin-products.service';
-import { translateProductWriteError } from './product-errors';
+import { translateProductWriteError, VARIANT_NOT_FOUND_MESSAGE } from './product-errors';
 import { lockProduct, refreshMinPrice } from './product-lock';
 import { LAST_ACTIVE_VARIANT_MESSAGE } from './publication-rules';
-
-export const VARIANT_NOT_FOUND_MESSAGE = 'Nie znaleziono wariantu tego produktu';
 
 /**
  * Variants are never deleted (order items reference them); isActive = false hides one.

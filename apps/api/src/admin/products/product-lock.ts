@@ -14,9 +14,9 @@ import { computeMinPrice } from '../../products/min-price';
 export async function lockProduct(
   tx: Prisma.TransactionClient,
   id: string,
-): Promise<{ status: ProductStatus }> {
-  const rows = await tx.$queryRaw<{ status: ProductStatus }[]>`
-    SELECT status FROM products WHERE id = ${id}::uuid FOR UPDATE`;
+): Promise<{ status: ProductStatus; updatedAt: Date }> {
+  const rows = await tx.$queryRaw<{ status: ProductStatus; updatedAt: Date }[]>`
+    SELECT status, updated_at AS "updatedAt" FROM products WHERE id = ${id}::uuid FOR UPDATE`;
   const product = rows[0];
   if (!product) {
     throw new NotFoundException(PRODUCT_NOT_FOUND_MESSAGE);

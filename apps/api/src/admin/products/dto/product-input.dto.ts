@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   ADMIN_SEARCH_MAX_LENGTH,
+  LOW_STOCK_THRESHOLD,
   adminProductSortSchema,
   brewMethodSchema,
   META_DESCRIPTION_MAX_LENGTH,
@@ -26,6 +27,7 @@ import {
   type RoastLevel,
   type UpdateProductInput,
   type UpdateVariantInput,
+  type UpsertVariantInput,
 } from '@ziarnista/shared';
 
 // Swagger description only; validation is done by the Zod schemas in @ziarnista/shared
@@ -69,6 +71,14 @@ export class UpdateVariantDto implements UpdateVariantInput {
       'false wyłącza wariant; ostatniego aktywnego wariantu produktu ACTIVE nie można wyłączyć',
   })
   isActive?: boolean;
+}
+
+export class UpsertVariantDto extends CreateVariantDto implements UpsertVariantInput {
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Istniejący wariant tego produktu; bez id wariant zostanie utworzony',
+  })
+  id?: string;
 }
 
 export class CreateProductDto implements CreateProductInput {
@@ -174,6 +184,22 @@ export class UpdateProductDto implements UpdateProductInput {
       'ACTIVE wymaga aktywnego wariantu i zdjęcia; ARCHIVED → DRAFT przywraca produkt z archiwum',
   })
   status?: ProductStatus;
+
+  @ApiPropertyOptional({
+    type: [UpsertVariantDto],
+    minItems: 1,
+    maxItems: PRODUCT_MAX_VARIANTS,
+    description:
+      'Z id: zmiana wariantu, bez id: nowy wariant. Warianty spoza listy zostają bez zmian (nie usuwamy ich)',
+  })
+  variants?: UpsertVariantDto[];
+
+  @ApiPropertyOptional({
+    format: 'date-time',
+    description:
+      'updatedAt wczytanego produktu. Inny niż w bazie = 409 z code PRODUCT_STALE (ktoś zmienił produkt w międzyczasie)',
+  })
+  expectedUpdatedAt?: string;
 }
 
 export class AdminProductListQueryDto implements AdminProductListQuery {
@@ -201,6 +227,12 @@ export class AdminProductListQueryDto implements AdminProductListQuery {
 
   @ApiPropertyOptional({ format: 'uuid', description: 'Obejmuje podkategorie' })
   categoryId?: string;
+
+  @ApiPropertyOptional({
+    enum: ['true'],
+    description: `Tylko produkty z aktywnym wariantem o stanie poniżej ${LOW_STOCK_THRESHOLD} (także 0)`,
+  })
+  lowStock?: true;
 
   @ApiPropertyOptional({
     enum: adminProductSortSchema.options,

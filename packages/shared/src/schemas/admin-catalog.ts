@@ -73,6 +73,9 @@ export const adminCategorySchema = z.object({
   childCount: countSchema,
 });
 
+/** Response of GET /admin/categories */
+export const adminCategoryListSchema = z.array(adminCategorySchema);
+
 export const adminOriginSchema = z.object({
   id: z.uuid(),
   name: z.string(),

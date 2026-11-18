@@ -23,6 +23,8 @@ export const SKU_MAX_LENGTH = 64;
 export const VARIANT_LABEL_MAX_LENGTH = 100;
 export const PRODUCT_MAX_VARIANTS = 20;
 export const ADMIN_SEARCH_MAX_LENGTH = 100;
+/** An active variant with stock below this is low (0 included) */
+export const LOW_STOCK_THRESHOLD = 10;
 
 const productNameSchema = z
   .string()
@@ -98,6 +100,12 @@ export const updateVariantSchema = z.strictObject({
   isActive: z.boolean().optional(),
 });
 
+/**
+ * A variant in PATCH /admin/products/:id: with an id it replaces that variant's fields,
+ * without one it is created. Variants missing from the list stay as they are (never deleted).
+ */
+export const upsertVariantSchema = createVariantSchema.extend({ id: idSchema.optional() });
+
 /** One SKU twice in one request would fail on the unique index; report it on the field */
 function checkDuplicateSkus(variants: { sku: string }[], ctx: z.RefinementCtx): void {
   const seen = new Set<string>();
@@ -140,31 +148,70 @@ export const createProductSchema = z
     checkDuplicateSkus(product.variants, ctx);
   });
 
+/** Same variant twice in one request: the second write would silently win */
+function checkDuplicateVariantIds(variants: { id?: string }[], ctx: z.RefinementCtx): void {
+  const seen = new Set<string>();
+  variants.forEach((variant, index) => {
+    if (variant.id === undefined) return;
+    if (seen.has(variant.id)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['variants', index, 'id'],
+        message: 'Wariant powtarza się na liście',
+      });
+    }
+    seen.add(variant.id);
+  });
+}
+
+/** 409 body field: the product changed since the form loaded it (optimistic locking) */
+export const PRODUCT_STALE_ERROR_CODE = 'PRODUCT_STALE';
+
 /**
  * Changes only the fields that are sent. The coffee rule depends on the stored product too
  * (e.g. { kind: 'COFFEE' } alone), so the API checks it on the merged result. A new name
- * does not regenerate the slug. Variants have their own endpoints.
+ * does not regenerate the slug. Product fields and variants are saved in one transaction,
+ * so the edit form never ends up half saved.
  */
-export const updateProductSchema = z.strictObject({
-  kind: productKindSchema.optional(),
-  originId: productAttributesShape.originId.optional(),
-  roastLevel: productAttributesShape.roastLevel.optional(),
-  flavorNotes: flavorNotesSchema.optional(),
-  brewMethods: brewMethodsSchema.optional(),
-  name: productNameSchema.optional(),
-  slug: slugSchema.optional(),
-  description: descriptionSchema.optional(),
-  metaTitle: metaTitleSchema.optional(),
-  metaDescription: metaDescriptionSchema.optional(),
-  categoryId: idSchema.optional(),
-  /** ACTIVE requires an active variant and an image; ARCHIVED → DRAFT restores a product */
-  status: productStatusSchema.optional(),
-});
+export const updateProductSchema = z
+  .strictObject({
+    kind: productKindSchema.optional(),
+    originId: productAttributesShape.originId.optional(),
+    roastLevel: productAttributesShape.roastLevel.optional(),
+    flavorNotes: flavorNotesSchema.optional(),
+    brewMethods: brewMethodsSchema.optional(),
+    name: productNameSchema.optional(),
+    slug: slugSchema.optional(),
+    description: descriptionSchema.optional(),
+    metaTitle: metaTitleSchema.optional(),
+    metaDescription: metaDescriptionSchema.optional(),
+    categoryId: idSchema.optional(),
+    /** ACTIVE requires an active variant and an image; ARCHIVED → DRAFT restores a product */
+    status: productStatusSchema.optional(),
+    variants: z
+      .array(upsertVariantSchema)
+      .min(1, 'Dodaj co najmniej jeden wariant')
+      .max(PRODUCT_MAX_VARIANTS, `Najwyżej ${PRODUCT_MAX_VARIANTS} wariantów`)
+      .optional(),
+    /**
+     * updatedAt of the product the form was loaded from. If the product has changed since,
+     * the API answers 409 with code PRODUCT_STALE instead of overwriting someone's changes.
+     * Optional: a bulk status change from the list overwrites on purpose.
+     */
+    expectedUpdatedAt: z.iso.datetime().optional(),
+  })
+  .superRefine((product, ctx) => {
+    if (product.variants !== undefined) {
+      checkDuplicateSkus(product.variants, ctx);
+      checkDuplicateVariantIds(product.variants, ctx);
+    }
+  });
 
 export const adminProductSortSchema = z.enum([
   'updated',
   'newest',
   'name',
+  'name_desc',
   'price_asc',
   'price_desc',
 ]);
@@ -180,6 +227,14 @@ export const adminProductListQuerySchema = z.strictObject({
   kind: productKindSchema.optional(),
   /** Includes all its subcategories */
   categoryId: idSchema.optional(),
+  /**
+   * Only "true": products with an active variant below LOW_STOCK_THRESHOLD. "false" would
+   * read as "stock is fine", which is a different filter, so it is rejected, not ignored.
+   */
+  lowStock: z
+    .literal('true')
+    .transform(() => true as const)
+    .optional(),
   sort: adminProductSortSchema.default('updated'),
 });
 
@@ -238,6 +293,8 @@ export const adminProductListItemSchema = z.object({
   activeVariantCount: countSchema,
   /** Sum over active variants */
   totalStock: countSchema,
+  /** Some active variant is below LOW_STOCK_THRESHOLD; the same rule as the lowStock filter */
+  hasLowStock: z.boolean(),
   /** First image by position */
   image: productImageSchema.nullable(),
   updatedAt: z.iso.datetime(),
@@ -247,6 +304,7 @@ export const adminProductListResponseSchema = paginatedSchema(adminProductListIt
 
 export type CreateVariantInput = z.infer<typeof createVariantSchema>;
 export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
+export type UpsertVariantInput = z.infer<typeof upsertVariantSchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type AdminProductListQuery = z.infer<typeof adminProductListQuerySchema>;
