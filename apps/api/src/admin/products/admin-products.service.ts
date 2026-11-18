@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   coffeeFieldsIssues,
+  LOW_STOCK_THRESHOLD,
   pageCount,
   type AdminProductDetail,
   type AdminProductListQuery,
@@ -36,6 +37,7 @@ const ORDER_BY: Record<AdminProductSort, Prisma.ProductOrderByWithRelationInput[
   updated: [{ updatedAt: 'desc' }, { id: 'desc' }],
   newest: [{ createdAt: 'desc' }, { id: 'desc' }],
   name: [{ name: 'asc' }, { id: 'asc' }],
+  name_desc: [{ name: 'desc' }, { id: 'desc' }],
   price_asc: [{ minPrice: { sort: 'asc', nulls: 'last' } }, { id: 'asc' }],
   price_desc: [{ minPrice: { sort: 'desc', nulls: 'last' } }, { id: 'desc' }],
 };
@@ -180,6 +182,10 @@ export class AdminProductsService {
         query.categoryId === undefined
           ? undefined
           : { in: await this.categoryWithDescendants(query.categoryId) },
+      // Same rule as hasLowStock in the mapper; inactive variants are not for sale
+      variants: query.lowStock
+        ? { some: { isActive: true, stock: { lt: LOW_STOCK_THRESHOLD } } }
+        : undefined,
       OR:
         q === undefined
           ? undefined

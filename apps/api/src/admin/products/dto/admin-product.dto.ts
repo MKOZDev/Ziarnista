@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   brewMethodSchema,
+  LOW_STOCK_THRESHOLD,
   productKindSchema,
   productStatusSchema,
   roastLevelSchema,
@@ -142,6 +143,11 @@ export class AdminProductListItemDto implements AdminProductListItem {
 
   @ApiProperty({ description: 'Suma stanów aktywnych wariantów' })
   totalStock: number;
+
+  @ApiProperty({
+    description: `Czy któryś aktywny wariant ma stan poniżej ${LOW_STOCK_THRESHOLD} (jak filtr lowStock)`,
+  })
+  hasLowStock: boolean;
 
   @ApiProperty({ type: ProductImageDto, nullable: true, description: 'Pierwsze zdjęcie' })
   image: ProductImageDto | null;

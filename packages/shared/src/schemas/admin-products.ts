@@ -23,6 +23,8 @@ export const SKU_MAX_LENGTH = 64;
 export const VARIANT_LABEL_MAX_LENGTH = 100;
 export const PRODUCT_MAX_VARIANTS = 20;
 export const ADMIN_SEARCH_MAX_LENGTH = 100;
+/** An active variant with stock below this is low (0 included) */
+export const LOW_STOCK_THRESHOLD = 10;
 
 const productNameSchema = z
   .string()
@@ -165,6 +167,7 @@ export const adminProductSortSchema = z.enum([
   'updated',
   'newest',
   'name',
+  'name_desc',
   'price_asc',
   'price_desc',
 ]);
@@ -180,6 +183,14 @@ export const adminProductListQuerySchema = z.strictObject({
   kind: productKindSchema.optional(),
   /** Includes all its subcategories */
   categoryId: idSchema.optional(),
+  /**
+   * Only "true": products with an active variant below LOW_STOCK_THRESHOLD. "false" would
+   * read as "stock is fine", which is a different filter, so it is rejected, not ignored.
+   */
+  lowStock: z
+    .literal('true')
+    .transform(() => true as const)
+    .optional(),
   sort: adminProductSortSchema.default('updated'),
 });
 
@@ -238,6 +249,8 @@ export const adminProductListItemSchema = z.object({
   activeVariantCount: countSchema,
   /** Sum over active variants */
   totalStock: countSchema,
+  /** Some active variant is below LOW_STOCK_THRESHOLD; the same rule as the lowStock filter */
+  hasLowStock: z.boolean(),
   /** First image by position */
   image: productImageSchema.nullable(),
   updatedAt: z.iso.datetime(),

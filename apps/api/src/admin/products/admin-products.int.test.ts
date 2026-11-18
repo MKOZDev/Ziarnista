@@ -403,6 +403,7 @@ describe('admin products (/admin/products)', () => {
           variantCount: 3,
           activeVariantCount: 2,
           totalStock: 10,
+          hasLowStock: true,
           image: {
             url: testImageUrl('guji.webp'),
             alt: 'Etiopia Guji 0',
@@ -446,6 +447,70 @@ describe('admin products (/admin/products)', () => {
         'v60-procent',
         'kawa-szkic',
       ]);
+    });
+
+    it('sorts by name both ways', async () => {
+      expect(slugs(await list('?sort=name'))).toEqual([
+        'v60-procent',
+        'etiopia-guji',
+        'kawa-szkic',
+      ]);
+      expect(slugs(await list('?sort=name_desc'))).toEqual([
+        'kawa-szkic',
+        'etiopia-guji',
+        'v60-procent',
+      ]);
+    });
+
+    describe('low stock (an active variant below LOW_STOCK_THRESHOLD = 10)', () => {
+      // etiopia-guji: active 7 and 3 → low; kawa-szkic: only an inactive variant (10);
+      // v60-procent: active 10, exactly the threshold → not low
+      it('filters products with a low active variant, including 0', async () => {
+        await createProduct(t.prisma, {
+          slug: 'wyprzedana',
+          name: 'Wyprzedana',
+          categoryId: kawaId,
+          originId: etiopiaId,
+          variants: [{ price: 4000, stock: 0 }],
+        });
+
+        const body = await list('?lowStock=true&sort=newest');
+
+        expect(slugs(body)).toEqual(['wyprzedana', 'etiopia-guji']);
+        expect(body.items.every((item) => item.hasLowStock)).toBe(true);
+      });
+
+      it('ignores inactive variants and a stock equal to the threshold', async () => {
+        await createProduct(t.prisma, {
+          slug: 'mieszana',
+          name: 'Mieszana',
+          categoryId: kawaId,
+          originId: etiopiaId,
+          variants: [
+            { price: 4000, stock: 25 },
+            { price: 3000, stock: 0, isActive: false },
+          ],
+        });
+
+        const body = await list('?sort=newest');
+
+        expect(body.items.map((item) => [item.slug, item.hasLowStock])).toEqual([
+          ['mieszana', false],
+          ['v60-procent', false],
+          ['kawa-szkic', false],
+          ['etiopia-guji', true],
+        ]);
+        expect(slugs(await list('?lowStock=true'))).toEqual(['etiopia-guji']);
+      });
+
+      it('combines with other filters', async () => {
+        expect(slugs(await list('?lowStock=true&status=DRAFT'))).toEqual([]);
+        expect(slugs(await list(`?lowStock=true&categoryId=${kawaId}`))).toEqual(['etiopia-guji']);
+      });
+
+      it('rejects lowStock other than "true"', async () => {
+        await get('?lowStock=false').expect(400);
+      });
     });
 
     it('paginates', async () => {

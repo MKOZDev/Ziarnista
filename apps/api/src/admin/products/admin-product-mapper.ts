@@ -1,4 +1,8 @@
-import type { AdminProductDetail, AdminProductListItem } from '@ziarnista/shared';
+import {
+  LOW_STOCK_THRESHOLD,
+  type AdminProductDetail,
+  type AdminProductListItem,
+} from '@ziarnista/shared';
 import type { Prisma } from '../../generated/prisma/client';
 import {
   productImageOrder,
@@ -78,6 +82,7 @@ export function toAdminProductListItem(
     variantCount: variants.length,
     activeVariantCount: active.length,
     totalStock: active.reduce((sum, variant) => sum + variant.stock, 0),
+    hasLowStock: active.some((variant) => variant.stock < LOW_STOCK_THRESHOLD),
     image: image ? toProductImage(image, publicUrl) : null,
     updatedAt: updatedAt.toISOString(),
   };

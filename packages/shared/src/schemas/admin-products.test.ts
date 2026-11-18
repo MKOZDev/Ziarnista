@@ -117,4 +117,12 @@ describe('adminProductListQuerySchema', () => {
   it('rejects unknown params', () => {
     expect(adminProductListQuerySchema.safeParse({ category: 'kawa' }).success).toBe(false);
   });
+
+  it('accepts lowStock only as "true"', () => {
+    expect(adminProductListQuerySchema.parse({ lowStock: 'true' })).toMatchObject({
+      lowStock: true,
+    });
+    expect(adminProductListQuerySchema.safeParse({ lowStock: 'false' }).success).toBe(false);
+    expect(adminProductListQuerySchema.safeParse({ lowStock: '1' }).success).toBe(false);
+  });
 });

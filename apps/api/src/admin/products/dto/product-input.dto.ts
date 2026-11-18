@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   ADMIN_SEARCH_MAX_LENGTH,
+  LOW_STOCK_THRESHOLD,
   adminProductSortSchema,
   brewMethodSchema,
   META_DESCRIPTION_MAX_LENGTH,
@@ -201,6 +202,12 @@ export class AdminProductListQueryDto implements AdminProductListQuery {
 
   @ApiPropertyOptional({ format: 'uuid', description: 'Obejmuje podkategorie' })
   categoryId?: string;
+
+  @ApiPropertyOptional({
+    enum: ['true'],
+    description: `Tylko produkty z aktywnym wariantem o stanie poniżej ${LOW_STOCK_THRESHOLD} (także 0)`,
+  })
+  lowStock?: true;
 
   @ApiPropertyOptional({
     enum: adminProductSortSchema.options,
