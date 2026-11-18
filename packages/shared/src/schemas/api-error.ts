@@ -4,6 +4,8 @@ import { z } from 'zod';
 // plus errors[] on validation failures (Zod and business rules checked in services)
 export const apiErrorBodySchema = z.object({
   message: z.string(),
+  /** Machine-readable reason where the status alone is ambiguous, e.g. PRODUCT_STALE on 409 */
+  code: z.string().optional(),
   errors: z.array(z.object({ path: z.string(), message: z.string() })).optional(),
 });
 

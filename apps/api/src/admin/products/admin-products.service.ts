@@ -9,6 +9,7 @@ import {
   type AdminProductSort,
   type CreateProductInput,
   type UpdateProductInput,
+  type UpsertVariantInput,
 } from '@ziarnista/shared';
 import { CategoryTree } from '../../catalog/category-tree';
 import { escapeLike } from '../../catalog/product-list.query';
@@ -27,9 +28,18 @@ import {
   toAdminProductDetail,
   toAdminProductListItem,
 } from './admin-product-mapper';
-import { PRODUCT_SLUG_INDEX, translateProductWriteError } from './product-errors';
-import { lockProduct } from './product-lock';
-import { PUBLISH_BLOCKED_MESSAGE, publicationIssues } from './publication-rules';
+import {
+  PRODUCT_SLUG_INDEX,
+  productStaleError,
+  translateProductWriteError,
+  VARIANT_NOT_FOUND_MESSAGE,
+} from './product-errors';
+import { lockProduct, refreshMinPrice } from './product-lock';
+import {
+  LAST_ACTIVE_VARIANT_MESSAGE,
+  PUBLISH_BLOCKED_MESSAGE,
+  publicationIssues,
+} from './publication-rules';
 
 // id breaks ties, so a product never shows up on two pages. Products without an active
 // variant (minPrice null) go last in both price orders.
@@ -121,28 +131,41 @@ export class AdminProductsService {
   }
 
   /**
-   * The coffee rule is checked on the stored product merged with the change (the schema
-   * alone cannot know that { kind: 'COFFEE' } leaves the origin empty). Publishing checks
-   * the variants and images under the product lock, so a concurrent variant change cannot
-   * invalidate the check before the commit.
+   * Product fields and variants in one transaction, under the product lock:
+   * 1. expectedUpdatedAt: the product must be the version the form was loaded from,
+   * 2. the coffee rule on the stored product merged with the change (the schema alone
+   *    cannot know that { kind: 'COFFEE' } leaves the origin empty),
+   * 3. variant writes and minPrice,
+   * 4. publication rules on the result, so a variant activated in the same request counts
+   *    and the last active variant of a published product cannot be switched off.
    */
   async update(id: string, input: UpdateProductInput): Promise<AdminProductDetail> {
+    const { variants, expectedUpdatedAt, ...fields } = input;
     try {
       await this.prisma.$transaction(async (tx) => {
-        const { status } = await lockProduct(tx, id);
+        const { status, updatedAt } = await lockProduct(tx, id);
+        // Compared under the lock: a save that commits in between is seen, not overwritten
+        if (
+          expectedUpdatedAt !== undefined &&
+          new Date(expectedUpdatedAt).getTime() !== updatedAt.getTime()
+        ) {
+          throw productStaleError();
+        }
         const current = await tx.product.findUniqueOrThrow({
           where: { id },
           select: { kind: true, originId: true, roastLevel: true },
         });
         const coffeeIssues = coffeeFieldsIssues({
-          kind: input.kind ?? current.kind,
-          originId: input.originId === undefined ? current.originId : input.originId,
-          roastLevel: input.roastLevel === undefined ? current.roastLevel : input.roastLevel,
+          kind: fields.kind ?? current.kind,
+          originId: fields.originId === undefined ? current.originId : fields.originId,
+          roastLevel: fields.roastLevel === undefined ? current.roastLevel : fields.roastLevel,
         });
         if (coffeeIssues.length > 0) {
           throw validationError(coffeeIssues);
         }
-        if (input.status === ProductStatus.ACTIVE && status !== ProductStatus.ACTIVE) {
+        const minPrice =
+          variants === undefined ? undefined : await this.writeVariants(tx, id, variants);
+        if (fields.status === ProductStatus.ACTIVE && status !== ProductStatus.ACTIVE) {
           const issues = publicationIssues({
             activeVariants: await tx.productVariant.count({
               where: { productId: id, isActive: true },
@@ -152,13 +175,51 @@ export class AdminProductsService {
           if (issues.length > 0) {
             throw validationError(issues, PUBLISH_BLOCKED_MESSAGE);
           }
+        } else if ((fields.status ?? status) === ProductStatus.ACTIVE && minPrice === null) {
+          throw validationError(
+            [{ path: 'variants', message: LAST_ACTIVE_VARIANT_MESSAGE }],
+            LAST_ACTIVE_VARIANT_MESSAGE,
+          );
         }
-        await tx.product.update({ where: { id }, data: input });
+        // Always written, also with no field changes: updatedAt marks the new version
+        await tx.product.update({ where: { id }, data: fields });
       });
     } catch (error) {
-      throw await translateProductWriteError(error, this.prisma, []);
+      throw await translateProductWriteError(
+        error,
+        this.prisma,
+        (variants ?? []).map((variant, index) => ({
+          path: `variants.${index}.sku`,
+          sku: variant.sku,
+          variantId: variant.id,
+        })),
+      );
     }
     return this.findById(id);
+  }
+
+  /**
+   * With an id: replaces the variant's fields; productId in the filter makes a variant of
+   * another product an error, not an edit. Without an id: a new variant. Returns minPrice.
+   */
+  private async writeVariants(
+    tx: Prisma.TransactionClient,
+    productId: string,
+    variants: UpsertVariantInput[],
+  ): Promise<number | null> {
+    for (const [index, { id, ...data }] of variants.entries()) {
+      if (id === undefined) {
+        await tx.productVariant.create({ data: { ...data, productId } });
+        continue;
+      }
+      const { count } = await tx.productVariant.updateMany({ where: { id, productId }, data });
+      if (count === 0) {
+        throw validationError([
+          { path: `variants.${index}.id`, message: VARIANT_NOT_FOUND_MESSAGE },
+        ]);
+      }
+    }
+    return refreshMinPrice(tx, productId);
   }
 
   /** DELETE = archive (SPEC 7.5); idempotent. Variants and order items stay untouched. */

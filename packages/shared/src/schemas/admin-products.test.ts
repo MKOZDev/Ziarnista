@@ -100,8 +100,44 @@ describe('updateProductSchema', () => {
     });
   });
 
-  it('does not accept variants', () => {
-    expect(updateProductSchema.safeParse({ variants: [variant] }).success).toBe(false);
+  it('accepts variants with and without an id, normalizing SKUs', () => {
+    const VARIANT_ID = '01923456-789a-7bcd-8ef0-123456789abe';
+
+    expect(
+      updateProductSchema.parse({
+        variants: [
+          { ...variant, id: VARIANT_ID },
+          { ...variant, sku: 'eth-guji-1000-z' },
+        ],
+      }),
+    ).toEqual({
+      variants: [
+        { ...variant, id: VARIANT_ID, sku: 'ETH-GUJI-250-Z', isActive: true },
+        { ...variant, sku: 'ETH-GUJI-1000-Z', isActive: true },
+      ],
+    });
+  });
+
+  it('reports a repeated SKU or variant id on the variant field', () => {
+    const VARIANT_ID = '01923456-789a-7bcd-8ef0-123456789abe';
+    const result = updateProductSchema.safeParse({
+      variants: [
+        { ...variant, id: VARIANT_ID },
+        { ...variant, id: VARIANT_ID, sku: 'ETH-GUJI-250-z' },
+      ],
+    });
+
+    expect(issuePaths(result)).toEqual(['variants.1.sku', 'variants.1.id']);
+  });
+
+  it('rejects an empty variant list and a malformed expectedUpdatedAt', () => {
+    expect(issuePaths(updateProductSchema.safeParse({ variants: [] }))).toEqual(['variants']);
+    expect(
+      updateProductSchema.safeParse({ expectedUpdatedAt: '2026-11-18T10:00:00.123Z' }).success,
+    ).toBe(true);
+    expect(issuePaths(updateProductSchema.safeParse({ expectedUpdatedAt: 'wczoraj' }))).toEqual([
+      'expectedUpdatedAt',
+    ]);
   });
 });
 

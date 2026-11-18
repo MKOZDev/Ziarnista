@@ -1,4 +1,5 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { PRODUCT_STALE_ERROR_CODE } from '@ziarnista/shared';
 import { PRODUCT_NOT_FOUND_MESSAGE } from '../../catalog/products.service';
 import {
   isCheckViolation,
@@ -13,11 +14,26 @@ import type { PrismaService } from '../../prisma/prisma.service';
 export const PRODUCT_SLUG_INDEX = 'products_slug_key';
 export const PRODUCT_SLUG_TAKEN_MESSAGE = 'Produkt o tym slugu już istnieje';
 export const SKU_TAKEN_MESSAGE = 'SKU jest już zajęte';
+export const VARIANT_NOT_FOUND_MESSAGE = 'Nie znaleziono wariantu tego produktu';
+export const PRODUCT_STALE_MESSAGE =
+  'Ktoś zmienił ten produkt, odkąd otworzyłeś formularz. Odśwież dane, żeby zobaczyć aktualną wersję.';
+
+/** 409 with a code: the panel tells it apart from a taken slug or SKU (also 409) */
+export function productStaleError(): ConflictException {
+  return new ConflictException({
+    statusCode: 409,
+    message: PRODUCT_STALE_MESSAGE,
+    code: PRODUCT_STALE_ERROR_CODE,
+  });
+}
 
 const SKU_INDEX = 'product_variants_sku_key';
 
-/** A SKU from the request and the path of its form field (e.g. "variants.1.sku") */
-export type SkuField = { path: string; sku: string };
+/**
+ * A SKU from the request and the path of its form field (e.g. "variants.1.sku").
+ * variantId: the variant being edited, which may keep its own SKU.
+ */
+export type SkuField = { path: string; sku: string; variantId?: string };
 
 /**
  * Database errors of product and variant writes → HTTP errors. The database is the single
@@ -63,15 +79,17 @@ async function skuConflict(
 ): Promise<ConflictException> {
   const existing = await prisma.productVariant.findMany({
     where: { sku: { in: skuFields.map((field) => field.sku) } },
-    select: { sku: true },
+    select: { id: true, sku: true },
   });
-  const taken = new Set(existing.map((variant) => variant.sku));
-  const errors = skuFields
-    .filter((field) => taken.has(field.sku))
-    .map((field) => ({ path: field.path, message: SKU_TAKEN_MESSAGE }));
+  const owners = new Map(existing.map((variant) => [variant.sku, variant.id]));
+  // An unchanged SKU of an edited variant is in the database too, but it is not a conflict
+  const conflicts = skuFields.filter(
+    (field) => owners.has(field.sku) && owners.get(field.sku) !== field.variantId,
+  );
+  const taken = new Set(conflicts.map((field) => field.sku));
   return new ConflictException({
     statusCode: 409,
     message: taken.size > 0 ? `SKU już zajęte: ${[...taken].join(', ')}` : SKU_TAKEN_MESSAGE,
-    errors,
+    errors: conflicts.map((field) => ({ path: field.path, message: SKU_TAKEN_MESSAGE })),
   });
 }

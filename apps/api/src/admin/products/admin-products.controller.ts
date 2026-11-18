@@ -42,8 +42,13 @@ import {
   UpdateProductDto,
   UpdateVariantDto,
 } from './dto/product-input.dto';
-import { PRODUCT_SLUG_TAKEN_MESSAGE, SKU_TAKEN_MESSAGE } from './product-errors';
-import { ProductVariantsService, VARIANT_NOT_FOUND_MESSAGE } from './product-variants.service';
+import {
+  PRODUCT_SLUG_TAKEN_MESSAGE,
+  PRODUCT_STALE_MESSAGE,
+  SKU_TAKEN_MESSAGE,
+  VARIANT_NOT_FOUND_MESSAGE,
+} from './product-errors';
+import { ProductVariantsService } from './product-variants.service';
 import { LAST_ACTIVE_VARIANT_MESSAGE, PUBLISH_BLOCKED_MESSAGE } from './publication-rules';
 
 @ApiTags('admin-products')
@@ -93,13 +98,17 @@ export class AdminProductsController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Zmiana danych produktu, w tym statusu i slugu' })
+  @ApiOperation({
+    summary: 'Zmiana danych produktu i jego wariantów w jednej transakcji, w tym statusu i slugu',
+  })
   @ApiOkResponse({ type: AdminProductDetailDto })
   @ApiBadRequestResponse({
-    description: `Nieprawidłowe dane; ${PUBLISH_BLOCKED_MESSAGE} (errors: brak aktywnego wariantu / zdjęcia)`,
+    description: `Nieprawidłowe dane; ${PUBLISH_BLOCKED_MESSAGE} (errors: brak aktywnego wariantu / zdjęcia); ${LAST_ACTIVE_VARIANT_MESSAGE}`,
   })
   @ApiNotFoundResponse({ description: PRODUCT_NOT_FOUND_MESSAGE })
-  @ApiConflictResponse({ description: PRODUCT_SLUG_TAKEN_MESSAGE })
+  @ApiConflictResponse({
+    description: `${PRODUCT_SLUG_TAKEN_MESSAGE}; ${SKU_TAKEN_MESSAGE} (errors: variants.N.sku); ${PRODUCT_STALE_MESSAGE} (code: PRODUCT_STALE)`,
+  })
   update(
     @Param('id', ParseIdPipe) id: string,
     @Body(new ZodValidationPipe(updateProductSchema)) body: UpdateProductDto,

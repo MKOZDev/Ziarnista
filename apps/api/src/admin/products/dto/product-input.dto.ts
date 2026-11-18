@@ -27,6 +27,7 @@ import {
   type RoastLevel,
   type UpdateProductInput,
   type UpdateVariantInput,
+  type UpsertVariantInput,
 } from '@ziarnista/shared';
 
 // Swagger description only; validation is done by the Zod schemas in @ziarnista/shared
@@ -70,6 +71,14 @@ export class UpdateVariantDto implements UpdateVariantInput {
       'false wyłącza wariant; ostatniego aktywnego wariantu produktu ACTIVE nie można wyłączyć',
   })
   isActive?: boolean;
+}
+
+export class UpsertVariantDto extends CreateVariantDto implements UpsertVariantInput {
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Istniejący wariant tego produktu; bez id wariant zostanie utworzony',
+  })
+  id?: string;
 }
 
 export class CreateProductDto implements CreateProductInput {
@@ -175,6 +184,22 @@ export class UpdateProductDto implements UpdateProductInput {
       'ACTIVE wymaga aktywnego wariantu i zdjęcia; ARCHIVED → DRAFT przywraca produkt z archiwum',
   })
   status?: ProductStatus;
+
+  @ApiPropertyOptional({
+    type: [UpsertVariantDto],
+    minItems: 1,
+    maxItems: PRODUCT_MAX_VARIANTS,
+    description:
+      'Z id: zmiana wariantu, bez id: nowy wariant. Warianty spoza listy zostają bez zmian (nie usuwamy ich)',
+  })
+  variants?: UpsertVariantDto[];
+
+  @ApiPropertyOptional({
+    format: 'date-time',
+    description:
+      'updatedAt wczytanego produktu. Inny niż w bazie = 409 z code PRODUCT_STALE (ktoś zmienił produkt w międzyczasie)',
+  })
+  expectedUpdatedAt?: string;
 }
 
 export class AdminProductListQueryDto implements AdminProductListQuery {

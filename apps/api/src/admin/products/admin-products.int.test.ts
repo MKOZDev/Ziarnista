@@ -1,7 +1,9 @@
-import type {
-  AdminProductDetail,
-  AdminProductListItem,
-  AdminProductListResponse,
+import {
+  PRODUCT_STALE_ERROR_CODE,
+  type AdminProductDetail,
+  type AdminProductListItem,
+  type AdminProductListResponse,
+  type AdminVariant,
 } from '@ziarnista/shared';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -318,6 +320,183 @@ describe('admin products (/admin/products)', () => {
         await remove(product.id).expect(204);
 
         await patch(product.id, { status: 'DRAFT' }).expect(200);
+      });
+    });
+
+    describe('with variants (one transaction)', () => {
+      const variantInput = (variant: AdminVariant, overrides: object = {}) => ({
+        id: variant.id,
+        sku: variant.sku,
+        label: variant.label,
+        price: variant.price,
+        stock: variant.stock,
+        isActive: variant.isActive,
+        ...overrides,
+      });
+
+      it('updates, adds and keeps variants, recomputing minPrice', async () => {
+        const product = await createViaApi();
+        const [small, large] = product.variants as [AdminVariant, AdminVariant];
+
+        const response = await patch(product.id, {
+          name: 'Etiopia Guji Natural',
+          variants: [
+            variantInput(small, { price: 5200, stock: 4 }),
+            { sku: 'eth-guji-500-z', label: '500 g / ziarno', price: 4500, stock: 8 },
+          ],
+        }).expect(200);
+        const body = response.body as AdminProductDetail;
+
+        expect(body.name).toBe('Etiopia Guji Natural');
+        // Not on the list → unchanged, not deleted
+        expect(body.variants).toEqual([
+          { ...small, price: 5200, stock: 4 },
+          large,
+          {
+            id: expect.any(String) as string,
+            sku: 'ETH-GUJI-500-Z',
+            label: '500 g / ziarno',
+            price: 4500,
+            stock: 8,
+            isActive: true,
+          },
+        ]);
+        expect(body.minPrice).toBe(4500);
+      });
+
+      it('rolls back the product fields when a variant fails, reporting variants.N.sku', async () => {
+        const product = await createViaApi();
+        await createViaApi({
+          name: 'Kenia',
+          variants: [{ sku: 'KENIA-250', label: '250 g', price: 100, stock: 1 }],
+        });
+        const [small] = product.variants as [AdminVariant];
+
+        const response = await patch(product.id, {
+          name: 'Nie zapisze się',
+          variants: [variantInput(small), { sku: 'kenia-250', label: 'x', price: 100, stock: 1 }],
+        }).expect(409);
+
+        expect(response.body).toMatchObject({
+          errors: [{ path: 'variants.1.sku', message: 'SKU jest już zajęte' }],
+        });
+        const stored = (await get(`/${product.id}`).expect(200)).body as AdminProductDetail;
+        expect(stored.name).toBe('Etiopia Guji');
+        expect(stored.variants).toHaveLength(2);
+      });
+
+      it('reports a variant of another product on its id field', async () => {
+        const product = await createViaApi();
+        const other = await createViaApi({
+          name: 'Kenia',
+          variants: [{ sku: 'KENIA-250', label: '250 g', price: 100, stock: 1 }],
+        });
+
+        const response = await patch(product.id, {
+          variants: [variantInput(other.variants[0] as AdminVariant)],
+        }).expect(400);
+
+        expect(response.body).toMatchObject({
+          errors: [{ path: 'variants.0.id', message: 'Nie znaleziono wariantu tego produktu' }],
+        });
+      });
+
+      it('publishes in the same request that activates the first variant', async () => {
+        const id = await createProduct(t.prisma, {
+          slug: 'kenia',
+          name: 'Kenia',
+          categoryId: przelewId,
+          originId: etiopiaId,
+          status: 'DRAFT',
+          variants: [{ price: 5900, isActive: false }],
+          images: ['kenia.webp'],
+        });
+        const [variant] = ((await get(`/${id}`)).body as AdminProductDetail).variants as [
+          AdminVariant,
+        ];
+
+        const response = await patch(id, {
+          status: 'ACTIVE',
+          variants: [variantInput(variant, { isActive: true })],
+        }).expect(200);
+
+        expect(response.body).toMatchObject({ status: 'ACTIVE', minPrice: 5900 });
+      });
+
+      it('does not switch off the last active variant of a published product', async () => {
+        const id = await createProduct(t.prisma, {
+          slug: 'kenia',
+          name: 'Kenia',
+          categoryId: przelewId,
+          originId: etiopiaId,
+          variants: [{ price: 5900 }],
+          images: ['kenia.webp'],
+        });
+        const [variant] = ((await get(`/${id}`)).body as AdminProductDetail).variants as [
+          AdminVariant,
+        ];
+
+        const response = await patch(id, {
+          variants: [variantInput(variant, { isActive: false })],
+        }).expect(400);
+
+        expect(response.body).toMatchObject({ errors: [{ path: 'variants' }] });
+      });
+    });
+
+    describe('optimistic locking (expectedUpdatedAt)', () => {
+      it('saves when the product is the version the form loaded', async () => {
+        const product = await createViaApi();
+
+        const response = await patch(product.id, {
+          name: 'Nowa nazwa',
+          expectedUpdatedAt: product.updatedAt,
+        }).expect(200);
+
+        expect((response.body as AdminProductDetail).updatedAt).not.toBe(product.updatedAt);
+      });
+
+      it('returns 409 PRODUCT_STALE when someone saved in between, changing nothing', async () => {
+        const product = await createViaApi();
+        await patch(product.id, { description: 'Zmiana innego admina' }).expect(200);
+
+        const response = await patch(product.id, {
+          name: 'Nadpisałoby zmianę',
+          expectedUpdatedAt: product.updatedAt,
+        }).expect(409);
+
+        expect(response.body).toMatchObject({ code: PRODUCT_STALE_ERROR_CODE });
+        const stored = (await get(`/${product.id}`).expect(200)).body as AdminProductDetail;
+        expect(stored).toMatchObject({ name: 'Etiopia Guji', description: 'Zmiana innego admina' });
+      });
+
+      it('treats a variant change through its own endpoint as a new version', async () => {
+        const product = await createViaApi();
+        const [small] = product.variants as [AdminVariant];
+        await request(t.server)
+          .patch(`${URL}/${product.id}/variants/${small.id}`)
+          .set('Cookie', cookie)
+          .set('Origin', ADMIN_ORIGIN)
+          .send({ stock: 0 })
+          .expect(200);
+
+        await patch(product.id, { name: 'X', expectedUpdatedAt: product.updatedAt }).expect(409);
+      });
+
+      it('lets only one of two concurrent saves of the same version through', async () => {
+        const product = await createViaApi();
+
+        const statuses = await Promise.all(
+          ['Pierwsza', 'Druga'].map(async (name) => {
+            const response = await patch(product.id, {
+              name,
+              expectedUpdatedAt: product.updatedAt,
+            });
+            return response.status;
+          }),
+        );
+
+        expect(statuses.sort()).toEqual([200, 409]);
       });
     });
   });
