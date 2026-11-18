@@ -28,7 +28,7 @@ Pełna specyfikacja: @docs/SPEC.md — przeczytaj ją przed większymi zmianami.
 - `apps/api` — NestJS, REST API
 - `packages/shared` — typy i schematy Zod współdzielone przez aplikacje
 - `packages/ui` — design system: tokeny, motyw Tailwinda, komponenty (`docs/design-system.md`)
-- `docs/` — dokumentacja
+- `docs/` — dokumentacja (stan i sesja panelu: `docs/admin-state.md`)
 
 ## Konwencje kodu
 
@@ -49,6 +49,7 @@ Uruchamiane z katalogu głównego repo (`pnpm <skrypt>`):
 - `pnpm lint` — sprawdza kod ESLintem (z regułami opartymi na typach) we wszystkich pakietach.
 - `pnpm typecheck` — sprawdza typy TypeScript we wszystkich pakietach bez generowania plików.
 - `pnpm test` — uruchamia testy (Vitest) we wszystkich pakietach. W `apps/api` dwa projekty: `unit` (`*.test.ts`) i `integration` (`*.int.test.ts`, prawdziwa baza `ziarnista_test`, tworzona i migrowana automatycznie; wymaga `pnpm db:up`). Tylko jeden: `pnpm --filter @ziarnista/api exec vitest run --project unit`.
+- Panel (`apps/admin`): Vitest + Testing Library + MSW w jsdom (`docs/admin-state.md`); tylko panel: `pnpm --filter @ziarnista/admin test`.
 - `pnpm storybook` — Storybook paczki `packages/ui` (`http://localhost:6006`, przełącznik motywu w toolbarze). W `packages/ui` projekty Vitest: `unit` oraz `storybook-light` i `storybook-dark` (każda story jako test w Chromium z axe); pierwszy raz: `pnpm --filter @ziarnista/ui exec playwright install chromium`.
 - `pnpm format` — formatuje całe repo Prettierem (zapisuje zmiany).
 - `pnpm format:check` — sprawdza formatowanie bez zmian w plikach (do CI).
